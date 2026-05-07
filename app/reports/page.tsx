@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAuthHeaders } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
+import { Icon, type IconName } from "../components/Icon";
 import {
   listKidsWithEntries,
   getEntriesInRange,
@@ -138,32 +139,34 @@ export default function ReportsPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-6">
+    <main className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
       <SetupBanner />
-      <div>
-        <h1 className="font-display text-2xl text-stone-800">월간 성장 리포트</h1>
-        <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-          한 달치 누적 알림장·관찰일지를 종합해서, 학부모님께 전달할 7-섹션
-          월간 성장 리포트를 만들어 드려요.
-        </p>
+      <div className="flex items-start gap-3">
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-terracotta-50 text-terracotta-600 shrink-0">
+          <Icon name="chart" size={20} strokeWidth={1.7} />
+        </span>
+        <div>
+          <h1 className="text-2xl font-semibold text-ink tracking-tight">월간 성장 리포트</h1>
+          <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+            한 달치 누적 알림장·관찰일지를 종합해서, 학부모님께 전달할 7-섹션
+            월간 성장 리포트를 만들어 드려요.
+          </p>
+        </div>
       </div>
 
       {loading ? (
-        <div className="text-center text-stone-400 py-16">불러오는 중...</div>
+        <div className="text-center text-ink-faint py-16">불러오는 중...</div>
       ) : kids.length === 0 ? (
-        <div className="bg-cream/50 border border-stone-200 rounded-2xl p-8 text-center text-sm text-stone-600 leading-relaxed">
-          아직 누적된 기록이 없어요.
-          <br />
-          "오늘 기록"에서 알림장이나 관찰일지를 한 번 이상 생성해야 월간
-          리포트를 만들 수 있어요.
+        <div className="bg-cream-100 border border-warm-100 rounded-2xl p-10 text-center text-sm text-ink-soft leading-relaxed shadow-card">
+          <p className="font-display text-base text-ink mb-2">아직 누적된 기록이 없어요</p>
+          <p>
+            "오늘 기록"에서 알림장이나 관찰일지를 한 번 이상 생성하면<br />
+            월간 리포트를 만들 수 있어요.
+          </p>
         </div>
       ) : (
         <>
-          {/* 1. 아이 선택 */}
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <label className="font-display text-lg text-stone-800 mb-3 block">
-              <span className="text-terracotta mr-2">1</span>아이 선택
-            </label>
+          <Step icon="users" step={1} title="아이 선택">
             <div className="flex flex-wrap gap-2">
               {kids.map((k) => {
                 const active = selectedKidId === k.kidId;
@@ -171,16 +174,16 @@ export default function ReportsPage() {
                   <button
                     key={k.kidId}
                     onClick={() => setSelectedKidId(k.kidId)}
-                    className={`px-3 py-2 rounded-lg border text-sm transition ${
+                    className={`px-3.5 py-2 rounded-xl border text-sm transition ${
                       active
-                        ? "bg-sage text-white border-sage"
-                        : "bg-white text-stone-700 border-stone-300 hover:border-stone-400"
+                        ? "bg-sage-500 text-white border-sage-500 shadow-sm"
+                        : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                     }`}
                   >
                     <div className="font-medium">{k.kidName}</div>
                     <div
-                      className={`text-[11px] mt-0.5 ${
-                        active ? "text-white/80" : "text-stone-500"
+                      className={`text-[11px] mt-0.5 tabular-nums ${
+                        active ? "text-white/85" : "text-ink-muted"
                       }`}
                     >
                       누적 {k.entryCount}건
@@ -189,79 +192,83 @@ export default function ReportsPage() {
                 );
               })}
             </div>
-          </section>
+          </Step>
 
-          {/* 2. 월 선택 */}
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <label className="font-display text-lg text-stone-800 mb-3 block">
-              <span className="text-terracotta mr-2">2</span>리포트 기간
-            </label>
-            <div className="flex items-center gap-3">
+          <Step icon="chart" step={2} title="리포트 기간">
+            <div className="flex items-center gap-3 flex-wrap">
               <input
                 type="month"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm"
+                className="px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
               />
-              <span className="text-sm text-stone-500">
+              <span className="text-sm text-ink-muted tabular-nums">
                 {range.label} · 이 기간 누적 기록 {entries.length}건
               </span>
             </div>
             {entries.length === 0 && (
-              <p className="text-xs text-amber-600 mt-2">
+              <p className="text-xs text-terracotta-700 bg-terracotta-50 border border-terracotta-100 px-3 py-2 rounded-xl mt-3">
                 선택한 기간에 이 아이의 기록이 없어요. 다른 월을 선택해 주세요.
               </p>
             )}
-          </section>
+          </Step>
 
-          {/* 3. 생성 */}
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
+          <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
             <button
               onClick={generate}
               disabled={generating || entries.length === 0}
-              className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
             >
+              {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
               {generating
                 ? "AI가 한 달치 기록을 종합하고 있어요..."
                 : `${selectedKid?.kidName ?? ""} ${range.label} 리포트 생성하기`}
             </button>
-            <p className="mt-3 text-xs text-stone-500 leading-relaxed">
-              ※ 누적 기록을 종합한 초안입니다. 학부모님께 전달하기 전에 반드시
-              선생님이 검토·수정해 주세요. 다른 아이 이름·진단 표현은 자동으로
-              걸러지지만 100% 보장되지 않습니다.
-            </p>
+            <div className="mt-4 flex items-start gap-2 text-xs text-ink-muted leading-relaxed">
+              <span className="text-warm-400 shrink-0 mt-0.5">
+                <Icon name="shield" size={14} strokeWidth={1.6} />
+              </span>
+              <p>
+                누적 기록을 종합한 초안입니다. 학부모님께 전달하기 전에 반드시
+                선생님이 검토·수정해 주세요. 다른 아이 이름·진단 표현은 자동으로
+                걸러지지만 100% 보장되지 않습니다.
+              </p>
+            </div>
             {error && (
-              <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+              <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl">
                 {error}
               </p>
             )}
           </section>
 
-          {/* 4. 결과 */}
           {report && (
-            <section className="bg-white rounded-2xl border border-stone-200 p-6">
-              <div className="flex items-baseline justify-between mb-4">
-                <h2 className="font-display text-lg text-stone-800">
+            <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
+                  <span className="text-terracotta-500">
+                    <Icon name="check" size={18} strokeWidth={2} />
+                  </span>
                   {selectedKid?.kidName} · {range.label} 성장 리포트
                 </h2>
                 <button
                   onClick={copyAll}
-                  className="text-sm px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
+                  className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
                 >
-                  {copied ? "✓ 전체 복사됨" : "전체 복사"}
+                  <Icon name="copy" size={14} strokeWidth={1.8} />
+                  {copied ? "전체 복사됨" : "전체 복사"}
                 </button>
               </div>
               <div className="space-y-4">
                 {SECTIONS.map(({ key, label }) => (
                   <div key={key}>
-                    <h3 className="font-display text-sm text-terracotta mb-1.5">
+                    <h3 className="text-xs font-semibold text-terracotta-700 mb-1.5 tracking-wide">
                       {label}
                     </h3>
                     <textarea
                       value={report[key]}
                       onChange={(e) => updateSection(key, e.target.value)}
                       rows={Math.max(2, report[key].split("\n").length + 1)}
-                      className="w-full text-sm leading-relaxed bg-cream/40 border border-stone-200 rounded-lg p-3 resize-none focus:outline-none focus:border-terracotta text-stone-700"
+                      className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-terracotta-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
                     />
                   </div>
                 ))}
@@ -271,5 +278,34 @@ export default function ReportsPage() {
         </>
       )}
     </main>
+  );
+}
+
+function Step({
+  step,
+  icon,
+  title,
+  children,
+}: {
+  step: number;
+  icon: IconName;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+          {step}
+        </span>
+        <span className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-ink">
+          <span className="text-terracotta-500">
+            <Icon name={icon} size={18} strokeWidth={1.7} />
+          </span>
+          {title}
+        </span>
+      </div>
+      {children}
+    </section>
   );
 }

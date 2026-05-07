@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
+import { Icon, type IconName } from "../components/Icon";
 import { savePlayJournal, todayISO } from "../lib/db";
 
 const AGE_OPTIONS = [
@@ -186,25 +187,27 @@ export default function PlayPage() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-5 py-8 pb-24 space-y-6">
+    <main className="max-w-3xl mx-auto px-5 py-8 pb-24 space-y-5">
       <SetupBanner />
-      <div>
-        <h1 className="font-display text-2xl text-stone-800">놀이기록 도우미</h1>
-        <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-          놀이 사진과 짧은 메모만 올리면, AI가 누리과정 영역과 연결된 전문
-          놀이기록을 자동으로 만들어 드려요.
-        </p>
+      <div className="flex items-start gap-3">
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-terracotta-50 text-terracotta-600 shrink-0">
+          <Icon name="camera" size={20} strokeWidth={1.7} />
+        </span>
+        <div>
+          <h1 className="text-2xl font-semibold text-ink tracking-tight">놀이기록 도우미</h1>
+          <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+            놀이 사진과 짧은 메모만 올리면, AI가 누리과정 영역과 연결된 전문
+            놀이기록을 자동으로 만들어 드려요.
+          </p>
+        </div>
       </div>
 
-      {/* 1. 사진 첨부 */}
-      <section className="bg-white rounded-2xl border border-stone-200 p-6">
-        <label className="font-display text-lg text-stone-800 mb-3 block">
-          <span className="text-terracotta mr-2">1</span>놀이 사진
-          <span className="text-xs text-stone-500 font-sans ml-2">
-            (최대 {MAX_IMAGES}장, 자동으로 1280px·JPEG로 압축됩니다)
-          </span>
-        </label>
-
+      <Step
+        icon="camera"
+        step={1}
+        title="놀이 사진"
+        hint={`최대 ${MAX_IMAGES}장, 자동으로 1280px·JPEG로 압축됩니다`}
+      >
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
@@ -212,7 +215,7 @@ export default function PlayPage() {
             handleFiles(e.dataTransfer.files);
           }}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-stone-300 hover:border-terracotta rounded-xl p-6 text-center cursor-pointer transition bg-cream/30"
+          className="border-2 border-dashed border-warm-200 hover:border-terracotta-300 rounded-2xl p-7 text-center cursor-pointer transition bg-cream-100"
         >
           <input
             ref={fileInputRef}
@@ -225,10 +228,13 @@ export default function PlayPage() {
             }}
             className="hidden"
           />
-          <p className="text-sm text-stone-600">
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-paper text-terracotta-500 mb-2">
+            <Icon name="camera" size={20} strokeWidth={1.7} />
+          </span>
+          <p className="text-sm text-ink-soft font-medium">
             클릭하거나 사진을 끌어다 놓으세요
           </p>
-          <p className="text-xs text-stone-400 mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             아이 얼굴이 식별되지 않는 사진을 권장해요 (놀이 장면·작품·활동 위주)
           </p>
         </div>
@@ -238,7 +244,7 @@ export default function PlayPage() {
             {images.map((img) => (
               <div
                 key={img.id}
-                className="relative group aspect-square rounded-lg overflow-hidden border border-stone-200"
+                className="relative group aspect-square rounded-xl overflow-hidden border border-warm-100"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -248,42 +254,34 @@ export default function PlayPage() {
                 />
                 <button
                   onClick={() => removeImage(img.id)}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-ink/60 hover:bg-ink/80 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                   aria-label="사진 삭제"
                 >
-                  ✕
+                  <Icon name="x" size={12} strokeWidth={2.4} />
                 </button>
               </div>
             ))}
           </div>
         )}
-      </section>
+      </Step>
 
-      {/* 2. 메모 */}
-      <section className="bg-white rounded-2xl border border-stone-200 p-6">
-        <label className="font-display text-lg text-stone-800 mb-3 block">
-          <span className="text-terracotta mr-2">2</span>놀이 메모 (선택)
-        </label>
+      <Step icon="pencil" step={2} title="놀이 메모 (선택)">
         <input
           value={activityName}
           onChange={(e) => setActivityName(e.target.value)}
           placeholder="활동명 (예: 봄꽃 찍기 미술놀이)"
-          className="w-full px-3 py-2 mb-3 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm"
+          className="w-full px-3.5 py-2.5 mb-3 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
         />
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="예: 물감으로 봄꽃 찍기 놀이. 손가락, 스펀지, 면봉으로 표현. 한 아이가 도구를 바꿔가며 질감 차이를 비교하는 모습 보임."
           rows={4}
-          className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm leading-relaxed"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
         />
-      </section>
+      </Step>
 
-      {/* 3. 연령 */}
-      <section className="bg-white rounded-2xl border border-stone-200 p-6">
-        <label className="font-display text-lg text-stone-800 mb-3 block">
-          <span className="text-terracotta mr-2">3</span>연령
-        </label>
+      <Step icon="users" step={3} title="연령">
         <div className="flex flex-wrap gap-2">
           {AGE_OPTIONS.map((a) => {
             const active = age === a.id;
@@ -291,10 +289,10 @@ export default function PlayPage() {
               <button
                 key={a.id}
                 onClick={() => setAge(a.id)}
-                className={`px-3 py-1.5 rounded-full border text-sm transition ${
+                className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                   active
-                    ? "bg-terracotta text-white border-terracotta"
-                    : "bg-white text-stone-700 border-stone-300 hover:border-stone-400"
+                    ? "bg-terracotta-500 text-white border-terracotta-500 shadow-sm"
+                    : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                 }`}
               >
                 {a.label}
@@ -302,54 +300,64 @@ export default function PlayPage() {
             );
           })}
         </div>
-      </section>
+      </Step>
 
-      {/* Generate */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6">
+      <div className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
         <button
           onClick={generate}
           disabled={generating}
-          className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
         >
+          {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
           {generating
             ? "AI가 사진을 보며 놀이기록을 작성하고 있어요..."
             : "놀이기록 생성하기"}
         </button>
-        <p className="mt-3 text-xs text-stone-500 leading-relaxed">
-          ※ AI가 사진과 메모를 종합해 작성한 초안입니다. 외부 공유 전 반드시
-          선생님이 검토해 주세요. 사진은 서버에 저장되지 않으며 생성 후 즉시
-          폐기됩니다.
-        </p>
+        <div className="mt-4 flex items-start gap-2 text-xs text-ink-muted leading-relaxed">
+          <span className="text-warm-400 shrink-0 mt-0.5">
+            <Icon name="shield" size={14} strokeWidth={1.6} />
+          </span>
+          <p>
+            AI가 사진과 메모를 종합해 작성한 초안입니다. 외부 공유 전 반드시
+            선생님이 검토해 주세요. 사진은 서버에 저장되지 않으며 생성 후 즉시
+            폐기됩니다.
+          </p>
+        </div>
         {error && (
-          <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+          <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl">
             {error}
           </p>
         )}
       </div>
 
-      {/* Result */}
       {journal && (
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-display text-lg text-stone-800">완성된 놀이기록</h2>
+        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
+              <span className="text-terracotta-500">
+                <Icon name="check" size={18} strokeWidth={2} />
+              </span>
+              완성된 놀이기록
+            </h2>
             <button
               onClick={copyAll}
-              className="text-sm px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
+              className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
             >
-              {copied ? "✓ 전체 복사됨" : "전체 복사"}
+              <Icon name="copy" size={14} strokeWidth={1.8} />
+              {copied ? "전체 복사됨" : "전체 복사"}
             </button>
           </div>
           <div className="space-y-4">
             {SECTION_LABELS.map(({ key, label }) => (
               <div key={key}>
-                <h3 className="font-display text-sm text-terracotta mb-1.5">
+                <h3 className="text-xs font-semibold text-terracotta-700 mb-1.5 tracking-wide">
                   {label}
                 </h3>
                 <textarea
                   value={journal[key]}
                   onChange={(e) => updateSection(key, e.target.value)}
                   rows={Math.max(2, journal[key].split("\n").length + 1)}
-                  className="w-full text-sm leading-relaxed bg-cream/40 border border-stone-200 rounded-lg p-3 resize-none focus:outline-none focus:border-terracotta text-stone-700"
+                  className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-terracotta-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
                 />
               </div>
             ))}
@@ -357,5 +365,37 @@ export default function PlayPage() {
         </section>
       )}
     </main>
+  );
+}
+
+function Step({
+  step,
+  icon,
+  title,
+  hint,
+  children,
+}: {
+  step: number;
+  icon: IconName;
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+          {step}
+        </span>
+        <span className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-ink">
+          <span className="text-terracotta-500">
+            <Icon name={icon} size={18} strokeWidth={1.7} />
+          </span>
+          {title}
+        </span>
+        {hint && <span className="text-xs text-ink-muted">{hint}</span>}
+      </div>
+      {children}
+    </section>
   );
 }

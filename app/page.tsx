@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { SetupBanner } from "./components/SetupBanner";
+import { Icon, type IconName } from "./components/Icon";
 import { saveDailyEntries, todayISO, type DailyEntryRecord } from "./lib/db";
 
 type MealStatus = "잘먹음" | "보통" | "안먹음" | "";
@@ -267,25 +268,28 @@ export default function Page() {
 
   return (
     <main className="min-h-screen pb-24">
-      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-4">
+      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-5">
         <SetupBanner />
-        {/* Class name */}
         <div className="flex items-center justify-between">
-          <h1 className="font-display text-xl text-stone-800">오늘 기록</h1>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-stone-500">반 이름</span>
+          <div>
+            <h1 className="text-2xl font-semibold text-ink tracking-tight">오늘 기록</h1>
+            <p className="text-sm text-ink-muted mt-0.5">
+              아이별 알림장과 관찰일지를 한 번에 작성해요
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-ink-muted">반 이름</span>
             <input
               value={className}
               onChange={(e) => setClassName(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-stone-300 bg-white w-28 focus:border-terracotta focus:outline-none"
+              className="px-3 py-2 rounded-xl border border-warm-200 bg-paper w-28 text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
             />
-          </div>
+          </label>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-8">
-        {/* Mode switcher */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-2 grid grid-cols-2 gap-2">
+      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-6">
+        <div className="bg-paper rounded-2xl border border-warm-100 p-1.5 grid grid-cols-2 gap-1 shadow-card">
           {(Object.keys(DOC_LABELS) as DocType[]).map((d) => {
             const active = docType === d;
             const info = DOC_LABELS[d];
@@ -295,14 +299,14 @@ export default function Page() {
                 onClick={() => setDocType(d)}
                 className={`text-left px-4 py-3 rounded-xl transition ${
                   active
-                    ? "bg-terracotta text-white"
-                    : "bg-transparent text-stone-700 hover:bg-stone-50"
+                    ? "bg-terracotta-500 text-white shadow-sm"
+                    : "bg-transparent text-ink-soft hover:bg-warm-50"
                 }`}
               >
-                <div className="font-display text-base">{info.name}</div>
+                <div className="text-base font-semibold">{info.name}</div>
                 <div
                   className={`text-xs mt-0.5 ${
-                    active ? "text-white/80" : "text-stone-500"
+                    active ? "text-white/85" : "text-ink-muted"
                   }`}
                 >
                   {info.sub}
@@ -312,36 +316,39 @@ export default function Page() {
           })}
         </div>
 
-        {/* Step 1: 아이 명단 */}
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-display text-lg text-stone-800">
-              <span className="text-terracotta mr-2">1</span>우리 반 아이들
-            </h2>
-            <span className="text-sm text-stone-500">
-              {children.length}명 등록됨
-            </span>
-          </div>
+        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+          <StepHeader
+            step={1}
+            icon="users"
+            title="우리 반 아이들"
+            right={
+              <span className="text-sm text-ink-muted tabular-nums">
+                {children.length}명 등록됨
+              </span>
+            }
+          />
 
           {children.length === 0 ? (
-            <div className="text-center py-8 text-stone-400 text-sm">
-              아래에서 아이 이름을 추가해 주세요. 한 번 등록하면 매일 다시
-              입력할 필요가 없어요.
+            <div className="text-center py-10 text-ink-muted text-sm">
+              <p className="font-display text-base text-ink-soft mb-1">
+                먼저 아이 이름을 추가해 주세요
+              </p>
+              <p>한 번 등록하면 매일 다시 입력할 필요가 없어요.</p>
             </div>
           ) : (
             <div className="flex flex-wrap gap-2 mb-4">
               {children.map((c) => (
                 <span
                   key={c.id}
-                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 rounded-full text-sm"
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 bg-cream-100 border border-warm-100 rounded-full text-sm text-ink-soft"
                 >
                   {c.name}
                   <button
                     onClick={() => removeChild(c.id)}
-                    className="text-stone-400 hover:text-red-500 text-xs"
+                    className="text-ink-faint hover:text-red-500 inline-flex items-center"
                     aria-label={`${c.name} 삭제`}
                   >
-                    ✕
+                    <Icon name="x" size={12} strokeWidth={2.2} />
                   </button>
                 </span>
               ))}
@@ -360,34 +367,35 @@ export default function Page() {
                   }
                 }}
                 placeholder="이름 입력 후 Enter"
-                className="flex-1 px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none"
+                className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
               />
               <button
                 onClick={() => {
                   addChild(newName);
                   setNewName("");
                 }}
-                className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 text-sm whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl text-sm font-medium whitespace-nowrap shadow-sm"
               >
+                <Icon name="plus" size={14} strokeWidth={2.2} />
                 추가
               </button>
             </div>
           </div>
-          <details className="mt-3 text-sm">
-            <summary className="text-stone-500 cursor-pointer hover:text-stone-700">
+          <details className="mt-4 text-sm">
+            <summary className="text-ink-muted cursor-pointer hover:text-ink-soft select-none">
               여러 명 한 번에 등록
             </summary>
-            <div className="mt-2 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <textarea
                 value={bulkInput}
                 onChange={(e) => setBulkInput(e.target.value)}
                 placeholder="이름들을 줄바꿈 또는 쉼표로 구분"
                 rows={3}
-                className="flex-1 px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm"
+                className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
               />
               <button
                 onClick={addBulk}
-                className="px-4 py-2 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 text-sm self-start"
+                className="px-4 py-2.5 bg-warm-100 text-ink-soft hover:bg-warm-200 rounded-xl text-sm font-medium self-start"
               >
                 일괄 추가
               </button>
@@ -395,40 +403,38 @@ export default function Page() {
           </details>
         </section>
 
-        {/* Step 2: 오늘의 활동 */}
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <h2 className="font-display text-lg text-stone-800 mb-4">
-            <span className="text-terracotta mr-2">2</span>오늘의 활동
-          </h2>
+        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+          <StepHeader step={2} icon="sun" title="오늘의 활동" />
           <textarea
             value={todayActivity}
             onChange={(e) => setTodayActivity(e.target.value)}
             placeholder="예: 봄꽃 그리기 미술활동을 했고, 바깥놀이로 모래놀이를 했어요. 점심은 닭볶음탕."
             rows={3}
-            className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
           />
-          <p className="text-xs text-stone-500 mt-2">
+          <p className="text-xs text-ink-muted mt-2.5">
             한 번 입력하면 모든 아이의 알림장에 자연스럽게 반영돼요.
           </p>
         </section>
 
-        {/* Step 3: 아이별 빠른 입력 */}
         {children.length > 0 && (
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="font-display text-lg text-stone-800">
-                <span className="text-terracotta mr-2">3</span>아이별 오늘 모습
-              </h2>
-              {hasAnyEntry && (
-                <button
-                  onClick={clearToday}
-                  className="text-xs text-stone-500 hover:text-red-500"
-                >
-                  오늘 입력 모두 지우기
-                </button>
-              )}
-            </div>
-            <p className="text-sm text-stone-500 mb-4">
+          <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+            <StepHeader
+              step={3}
+              icon="pencil"
+              title="아이별 오늘 모습"
+              right={
+                hasAnyEntry && (
+                  <button
+                    onClick={clearToday}
+                    className="text-xs text-ink-muted hover:text-red-500"
+                  >
+                    오늘 입력 모두 지우기
+                  </button>
+                )
+              }
+            />
+            <p className="text-sm text-ink-soft mb-4 leading-relaxed">
               {docType === "gwanchal"
                 ? "각 아이의 관찰된 모습을 짧게 메모해 주세요. 식사·기분·낮잠은 참고만 됩니다."
                 : "빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요. 비워두셔도 괜찮아요."}
@@ -447,21 +453,17 @@ export default function Page() {
           </section>
         )}
 
-        {/* Step 4: 생성 */}
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <h2 className="font-display text-lg text-stone-800 mb-4">
-            <span className="text-terracotta mr-2">4</span>
-            {DOC_LABELS[docType].name} 생성
-          </h2>
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="text-sm text-stone-600">문체</span>
+        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+          <StepHeader step={4} icon="sparkle" title={`${DOC_LABELS[docType].name} 생성`} />
+          <div className="flex flex-wrap items-center gap-2 mb-5">
+            <span className="text-sm text-ink-muted mr-1">문체</span>
             {(Object.keys(TONE_LABELS[docType]) as ToneStyle[]).map((t) => (
               <label
                 key={t}
-                className={`px-3 py-1.5 rounded-full border text-sm cursor-pointer transition ${
+                className={`px-3.5 py-1.5 rounded-full border text-sm cursor-pointer transition ${
                   tone === t
-                    ? "bg-terracotta text-white border-terracotta"
-                    : "bg-white text-stone-700 border-stone-300 hover:border-stone-400"
+                    ? "bg-sage-500 text-white border-sage-500 shadow-sm"
+                    : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                 }`}
               >
                 <input
@@ -479,39 +481,46 @@ export default function Page() {
           <button
             onClick={generate}
             disabled={generating || children.length === 0}
-            className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
           >
+            {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
             {generating
               ? `AI가 ${DOC_LABELS[docType].name}을 작성하고 있어요...`
               : `${children.length}명의 ${DOC_LABELS[docType].name} 한 번에 생성하기`}
           </button>
-          <p className="mt-3 text-xs text-stone-500 leading-relaxed">
-            ※ AI가 작성한 초안입니다. 학부모님이나 외부에 전송하기 전에 반드시
-            선생님이 검토·수정해 주세요. 진단·평가적 표현, 다른 아이 이름은
-            자동으로 걸러지지만 100% 보장되지 않습니다.
-          </p>
+          <div className="mt-4 flex items-start gap-2 text-xs text-ink-muted leading-relaxed">
+            <span className="text-warm-400 shrink-0 mt-0.5">
+              <Icon name="shield" size={14} strokeWidth={1.6} />
+            </span>
+            <p>
+              AI가 작성한 초안입니다. 학부모님이나 외부에 전송하기 전에 반드시
+              선생님이 검토·수정해 주세요. 진단·평가적 표현, 다른 아이 이름은
+              자동으로 걸러지지만 100% 보장되지 않습니다.
+            </p>
+          </div>
           {error && (
-            <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl">
               {error}
             </p>
           )}
         </section>
 
-        {/* Step 5: 결과 */}
         {Object.keys(notes).length > 0 && (
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="font-display text-lg text-stone-800">
-                <span className="text-terracotta mr-2">5</span>완성된{" "}
-                {DOC_LABELS[docType].name}
-              </h2>
-              <button
-                onClick={copyAll}
-                className="text-sm px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
-              >
-                {copiedId === "ALL" ? "✓ 전체 복사됨" : "전체 복사"}
-              </button>
-            </div>
+          <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+            <StepHeader
+              step={5}
+              icon="check"
+              title={`완성된 ${DOC_LABELS[docType].name}`}
+              right={
+                <button
+                  onClick={copyAll}
+                  className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                >
+                  <Icon name="copy" size={14} strokeWidth={1.8} />
+                  {copiedId === "ALL" ? "전체 복사됨" : "전체 복사"}
+                </button>
+              }
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               {children.map((c) => {
                 const text = notes[c.id];
@@ -519,15 +528,16 @@ export default function Page() {
                 return (
                   <div
                     key={c.id}
-                    className="border border-stone-200 rounded-xl p-4 bg-cream/40"
+                    className="rounded-2xl p-4 bg-cream-100 border-l-2 border-terracotta-300"
                   >
                     <div className="flex items-baseline justify-between mb-2">
-                      <h3 className="font-display text-stone-800">{c.name}</h3>
+                      <h3 className="font-semibold text-ink">{c.name}</h3>
                       <button
                         onClick={() => copy(c.id)}
-                        className="text-xs px-2 py-1 text-stone-600 hover:text-terracotta"
+                        className="inline-flex items-center gap-1 text-xs px-2 py-1 text-ink-muted hover:text-terracotta-600"
                       >
-                        {copiedId === c.id ? "✓ 복사됨" : "복사"}
+                        <Icon name="copy" size={12} strokeWidth={1.8} />
+                        {copiedId === c.id ? "복사됨" : "복사"}
                       </button>
                     </div>
                     <textarea
@@ -536,23 +546,19 @@ export default function Page() {
                         setNotes((prev) => ({ ...prev, [c.id]: e.target.value }))
                       }
                       rows={docType === "gwanchal" ? 12 : 6}
-                      className="w-full text-sm leading-relaxed bg-transparent resize-none focus:outline-none text-stone-700"
+                      className="w-full text-sm leading-relaxed bg-transparent resize-none focus:outline-none text-ink-soft"
                     />
                   </div>
                 );
               })}
             </div>
-            <p className="text-xs text-stone-500 mt-4">
+            <p className="text-xs text-ink-muted mt-4">
               내용은 직접 수정할 수 있어요. 복사 후 키즈노트·카카오톡·문자에
               붙여넣으세요.
             </p>
           </section>
         )}
       </div>
-
-      <footer className="max-w-5xl mx-auto px-5 mt-16 text-center text-xs text-stone-400">
-        오늘알림장 · 선생님의 1시간을 돌려드립니다
-      </footer>
     </main>
   );
 }
@@ -573,27 +579,28 @@ function ChildRow({
     ? "오늘 관찰한 모습 (예: 블록으로 긴 다리를 만들고 친구와 함께 놀이 확장, 동화책 보고 질문 많이 함)"
     : "특이사항 (예: 친구랑 블록놀이 즐겁게 함, 콧물 살짝 있음)";
   return (
-    <div className="border border-stone-200 rounded-xl p-3 bg-cream/30">
-      <div className="flex flex-wrap items-center gap-2 mb-2">
-        <span className="font-display text-stone-800 min-w-[3.5rem]">
-          {child.name}
-        </span>
+    <div className="border border-warm-100 rounded-2xl p-3.5 bg-cream-50">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2.5">
+        <span className="font-semibold text-ink min-w-[3.5rem]">{child.name}</span>
         {!isGwanchal && (
           <>
             <ToggleGroup
               label="식사"
+              icon="bowl"
               options={["잘먹음", "보통", "안먹음"] as const}
               value={entry.meal}
               onChange={(v) => onChange({ meal: v as MealStatus })}
             />
             <ToggleGroup
               label="기분"
+              icon="smile"
               options={["좋음", "보통", "안좋음"] as const}
               value={entry.mood}
               onChange={(v) => onChange({ mood: v as MoodStatus })}
             />
             <ToggleGroup
               label="낮잠"
+              icon="moon"
               options={["푹잠", "뒤척임", "안잠"] as const}
               value={entry.nap}
               onChange={(v) => onChange({ nap: v as NapStatus })}
@@ -607,44 +614,78 @@ function ChildRow({
           onChange={(e) => onChange({ memo: e.target.value })}
           placeholder={placeholder}
           rows={2}
-          className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none resize-none"
+          className="w-full px-3 py-2 text-sm rounded-xl border border-warm-200 bg-paper focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
         />
       ) : (
         <input
           value={entry.memo}
           onChange={(e) => onChange({ memo: e.target.value })}
           placeholder={placeholder}
-          className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none"
+          className="w-full px-3 py-2 text-sm rounded-xl border border-warm-200 bg-paper focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
         />
       )}
     </div>
   );
 }
 
+function StepHeader({
+  step,
+  icon,
+  title,
+  right,
+}: {
+  step: number;
+  icon: IconName;
+  title: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+          {step}
+        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-terracotta-500">
+            <Icon name={icon} size={18} strokeWidth={1.7} />
+          </span>
+          <h2 className="text-base sm:text-lg font-semibold text-ink">{title}</h2>
+        </div>
+      </div>
+      {right}
+    </div>
+  );
+}
+
 function ToggleGroup<T extends string>({
   label,
+  icon,
   options,
   value,
   onChange,
 }: {
   label: string;
+  icon: IconName;
   options: readonly T[];
   value: string;
   onChange: (v: T | "") => void;
 }) {
   return (
-    <div className="flex items-center gap-1">
-      <span className="text-xs text-stone-500 mr-1">{label}</span>
+    <div className="flex items-center gap-1.5">
+      <span className="inline-flex items-center gap-1 text-xs text-ink-muted mr-0.5">
+        <Icon name={icon} size={13} strokeWidth={1.6} />
+        {label}
+      </span>
       {options.map((opt) => {
         const active = value === opt;
         return (
           <button
             key={opt}
             onClick={() => onChange(active ? "" : opt)}
-            className={`px-2.5 py-1 text-xs rounded-md border transition ${
+            className={`px-2.5 py-1 text-xs rounded-lg border transition ${
               active
-                ? "bg-sage text-white border-sage"
-                : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+                ? "bg-sage-500 text-white border-sage-500 shadow-sm"
+                : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300"
             }`}
           >
             {opt}
