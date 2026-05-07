@@ -4,7 +4,17 @@ import { useState } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
-import { saveParentReply, todayISO } from "../lib/db";
+import {
+  saveParentReply,
+  listParentReplies,
+  deleteParentReply,
+  todayISO,
+} from "../lib/db";
+import {
+  HistorySection,
+  situationLabel,
+  type HistoryItem,
+} from "../components/HistorySection";
 
 type Situation =
   | "general"
@@ -254,6 +264,31 @@ export default function ParentPage() {
           </p>
         </section>
       )}
+
+      <HistorySection
+        title="지난 답변 기록"
+        emptyMessage="아직 저장된 학부모 답변이 없어요. 답변 초안을 한 번 만들면 이곳에 자동으로 쌓입니다."
+        load={async () => {
+          const rows = await listParentReplies(50);
+          return rows
+            .filter((r): r is typeof r & { id: number } => r.id !== undefined)
+            .map<HistoryItem>((r) => ({
+              id: r.id,
+              createdAt: r.createdAt,
+              meta: [situationLabel(r.situation), r.childName?.trim() || "이름 미입력"],
+              title: r.parentMessage.replace(/\s+/g, " ").slice(0, 60),
+              preview: r.draft.replace(/\s+/g, " ").slice(0, 80),
+              detail: [
+                { label: "학부모님 메시지", text: r.parentMessage },
+                ...(r.extraContext ? [{ label: "교사 참고 정보", text: r.extraContext }] : []),
+                { label: "답변 초안", text: r.draft },
+              ],
+            }));
+        }}
+        onDelete={async (id) => {
+          await deleteParentReply(id);
+        }}
+      />
     </main>
   );
 }

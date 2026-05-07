@@ -101,6 +101,32 @@ export async function savePlayJournal(record: PlayJournalRecord) {
   await getDb().playJournals.add(record);
 }
 
+export async function listParentReplies(limit = 50): Promise<ParentReplyRecord[]> {
+  const rows = await getDb()
+    .parentReplies.orderBy("createdAt")
+    .reverse()
+    .limit(limit)
+    .toArray();
+  return rows;
+}
+
+export async function deleteParentReply(id: number): Promise<void> {
+  await getDb().parentReplies.delete(id);
+}
+
+export async function listPlayJournals(limit = 50): Promise<PlayJournalRecord[]> {
+  const rows = await getDb()
+    .playJournals.orderBy("createdAt")
+    .reverse()
+    .limit(limit)
+    .toArray();
+  return rows;
+}
+
+export async function deletePlayJournal(id: number): Promise<void> {
+  await getDb().playJournals.delete(id);
+}
+
 export interface KidSummary {
   kidId: string;
   kidName: string;

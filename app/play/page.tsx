@@ -4,7 +4,22 @@ import { useState, useRef } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
-import { savePlayJournal, todayISO } from "../lib/db";
+import {
+  savePlayJournal,
+  listPlayJournals,
+  deletePlayJournal,
+  todayISO,
+} from "../lib/db";
+import { HistorySection, type HistoryItem } from "../components/HistorySection";
+
+const AGE_LABELS: Record<string, string> = {
+  "0-1": "만 0~1세",
+  "2": "만 2세",
+  "3": "만 3세",
+  "4": "만 4세",
+  "5": "만 5세",
+  mixed: "혼합연령",
+};
 
 const AGE_OPTIONS = [
   { id: "0-1", label: "만 0~1세" },
@@ -364,6 +379,38 @@ export default function PlayPage() {
           </div>
         </section>
       )}
+
+      <HistorySection
+        title="지난 놀이기록"
+        emptyMessage="아직 저장된 놀이기록이 없어요. 사진과 메모로 놀이기록을 한 번 만들면 이곳에 자동으로 쌓입니다."
+        load={async () => {
+          const rows = await listPlayJournals(50);
+          return rows
+            .filter((r): r is typeof r & { id: number } => r.id !== undefined)
+            .map<HistoryItem>((r) => ({
+              id: r.id,
+              createdAt: r.createdAt,
+              meta: [
+                AGE_LABELS[r.ageBand] ?? r.ageBand,
+                r.activityName?.trim() || "활동명 미입력",
+              ],
+              title: r.theme.replace(/\s+/g, " ").slice(0, 60),
+              preview: r.flow.replace(/\s+/g, " ").slice(0, 80),
+              detail: [
+                { label: "놀이 주제", text: r.theme },
+                { label: "놀이 흐름", text: r.flow },
+                { label: "유아의 반응", text: r.reactions },
+                { label: "배움 요소 (누리과정)", text: r.learning },
+                { label: "교사 지원", text: r.support },
+                { label: "확장 놀이", text: r.extension },
+                { label: "가정 연계", text: r.homeConnection },
+              ],
+            }));
+        }}
+        onDelete={async (id) => {
+          await deletePlayJournal(id);
+        }}
+      />
     </main>
   );
 }
