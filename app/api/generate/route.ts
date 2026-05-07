@@ -1,5 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { createProvider, parseAuth, ProviderError } from "@/app/lib/providers";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -102,11 +102,14 @@ ${SAFETY_GUIDELINES}
 text 필드 안에는 관찰일지 본문만. 아이 이름을 본문 첫머리에 다시 붙이지 말 것. 줄바꿈은 \\n. 본문 안에 자연스러운 문단 구분은 \\n\\n으로.`;
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다." },
-      { status: 500 },
-    );
+  let auth;
+  try {
+    auth = parseAuth(req);
+  } catch (e) {
+    if (e instanceof ProviderError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
   }
 
   let body: RequestBody;
@@ -158,60 +161,40 @@ ${childrenSection}
 
 JSON으로만 응답하세요. notes 배열에 모든 ${children.length}명의 ${docLabel}이 빠짐없이 포함되어야 하고, childId 값은 위에 적힌 id와 정확히 일치해야 합니다.`;
 
-  const client = new Anthropic();
+  const provider = createProvider(auth.provider, auth.apiKey, auth.model);
 
   try {
-    const response = await client.messages.create({
-      model: "claude-opus-4-7",
-      max_tokens: 16000,
-      thinking: { type: "adaptive" },
-      system: [
-        {
-          type: "text",
-          text: systemPrompt,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
-      messages: [{ role: "user", content: userPrompt }],
-      output_config: {
-        format: {
-          type: "json_schema",
-          schema: {
-            type: "object",
-            properties: {
-              notes: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    childId: { type: "string" },
-                    text: { type: "string" },
-                  },
-                  required: ["childId", "text"],
-                  additionalProperties: false,
+    const result = await provider.generate({
+      systemPrompt,
+      userText: userPrompt,
+      maxTokens: 16000,
+      jsonSchema: {
+        name: "daily_notes",
+        schema: {
+          type: "object",
+          properties: {
+            notes: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  childId: { type: "string" },
+                  text: { type: "string" },
                 },
+                required: ["childId", "text"],
+                additionalProperties: false,
               },
             },
-            required: ["notes"],
-            additionalProperties: false,
           },
+          required: ["notes"],
+          additionalProperties: false,
         },
       },
     });
 
-    const textBlock = response.content.find(
-      (b): b is Anthropic.TextBlock => b.type === "text",
-    );
-    if (!textBlock) {
-      return NextResponse.json(
-        { error: "AI 응답이 비어 있습니다. 다시 시도해 주세요." },
-        { status: 502 },
-      );
-    }
-
     let parsed: { notes: Array<{ childId: string; text: string }> };
     try {
-      parsed = JSON.parse(textBlock.text);
+      parsed = JSON.parse(result.text);
     } catch {
       return NextResponse.json(
         { error: "AI 응답을 파싱하지 못했습니다. 다시 시도해 주세요." },
@@ -221,7 +204,6 @@ JSON으로만 응답하세요. notes 배열에 모든 ${children.length}명의 $
 
     const validIds = new Set(children.map((c) => c.id));
     const notes = (parsed.notes ?? []).filter((n) => validIds.has(n.childId));
-
     const present = new Set(notes.map((n) => n.childId));
     for (const c of children) {
       if (!present.has(c.id)) {
@@ -234,14 +216,11 @@ JSON으로만 응답하세요. notes 배열에 모든 ${children.length}명의 $
 
     return NextResponse.json({ notes });
   } catch (e) {
-    if (e instanceof Anthropic.APIError) {
-      const message =
-        e.status === 401
-          ? "API 키가 유효하지 않습니다."
-          : e.status === 429
-            ? "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요."
-            : `AI 호출 중 오류가 발생했습니다 (${e.status}).`;
-      return NextResponse.json({ error: message }, { status: e.status ?? 500 });
+    if (e instanceof ProviderError) {
+      return NextResponse.json(
+        { error: e.message },
+        { status: e.status === 401 ? 401 : e.status === 429 ? 429 : 500 },
+      );
     }
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "알 수 없는 오류" },

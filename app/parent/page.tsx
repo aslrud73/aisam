@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { getAuthHeaders } from "../lib/settings";
+import { SetupBanner } from "../components/SetupBanner";
 
 type Situation =
   | "general"
@@ -51,7 +53,7 @@ export default function ParentPage() {
     try {
       const res = await fetch("/api/parent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify({
           parentMessage,
           childName,
@@ -82,6 +84,7 @@ export default function ParentPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-5 py-8 pb-24 space-y-6">
+      <SetupBanner />
       <div>
         <h1 className="font-display text-2xl text-stone-800">학부모 답변 도우미</h1>
         <p className="text-sm text-stone-500 mt-1 leading-relaxed">

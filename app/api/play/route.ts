@@ -1,5 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import {
+  createProvider,
+  parseAuth,
+  ProviderError,
+  type ImageInput,
+} from "@/app/lib/providers";
 
 export const runtime = "nodejs";
 export const maxDuration = 90;
@@ -20,7 +25,6 @@ const AGE_LABELS: Record<string, string> = {
   mixed: "혼합연령 (영유아 통합반)",
 };
 
-// Claude Vision currently supports JPEG, PNG, GIF, WebP.
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/jpg",
@@ -30,7 +34,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 
 const MAX_IMAGES = 5;
-const MAX_TOTAL_BYTES = 20 * 1024 * 1024; // 20MB safety cap across all images
+const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
 
 const SYSTEM_PROMPT = `당신은 한국 유치원·어린이집의 베테랑 담임 교사이자 누리과정·표준보육과정 전문가입니다. 교사가 제공한 놀이 사진과 짧은 메모를 바탕으로, 기관에 제출 가능한 수준의 전문적인 놀이기록을 작성합니다.
 
@@ -102,18 +106,20 @@ function parseDataUrl(dataUrl: string): {
   if (!match) return null;
   const mediaType = match[1].toLowerCase();
   const data = match[2];
-  // base64 byte length ≈ data.length * 3/4 (minus padding)
   const padding = data.endsWith("==") ? 2 : data.endsWith("=") ? 1 : 0;
   const byteLength = Math.floor((data.length * 3) / 4) - padding;
   return { mediaType, data, byteLength };
 }
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다." },
-      { status: 500 },
-    );
+  let auth;
+  try {
+    auth = parseAuth(req);
+  } catch (e) {
+    if (e instanceof ProviderError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
   }
 
   let body: RequestBody;
@@ -138,7 +144,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const imageBlocks: Anthropic.ImageBlockParam[] = [];
+  const imageInputs: ImageInput[] = [];
   let totalBytes = 0;
   for (const dataUrl of images) {
     const parsed = parseDataUrl(dataUrl);
@@ -161,15 +167,10 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-    // Narrow to the four media types the Anthropic SDK accepts.
     const mt = parsed.mediaType === "image/jpg" ? "image/jpeg" : parsed.mediaType;
-    imageBlocks.push({
-      type: "image",
-      source: {
-        type: "base64",
-        media_type: mt as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
-        data: parsed.data,
-      },
+    imageInputs.push({
+      mediaType: mt as ImageInput["mediaType"],
+      data: parsed.data,
     });
   }
 
@@ -191,64 +192,40 @@ ${note.trim() || "(미입력 — 사진만 보고 추론)"}
 - 진단·평가·낙인 표현 금지
 - 모든 7개 필드(theme, flow, reactions, learning, support, extension, homeConnection)를 빠짐없이 채울 것`;
 
-  const userContent: Anthropic.ContentBlockParam[] = [
-    ...imageBlocks,
-    { type: "text", text: userText },
-  ];
-
-  const client = new Anthropic();
+  const provider = createProvider(auth.provider, auth.apiKey, auth.model);
 
   try {
-    const response = await client.messages.create({
-      model: "claude-opus-4-7",
-      max_tokens: 4096,
-      thinking: { type: "adaptive" },
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
-      messages: [{ role: "user", content: userContent }],
-      output_config: {
-        format: {
-          type: "json_schema",
-          schema: {
-            type: "object",
-            properties: {
-              theme: { type: "string" },
-              flow: { type: "string" },
-              reactions: { type: "string" },
-              learning: { type: "string" },
-              support: { type: "string" },
-              extension: { type: "string" },
-              homeConnection: { type: "string" },
-            },
-            required: [
-              "theme",
-              "flow",
-              "reactions",
-              "learning",
-              "support",
-              "extension",
-              "homeConnection",
-            ],
-            additionalProperties: false,
+    const result = await provider.generate({
+      systemPrompt: SYSTEM_PROMPT,
+      userText,
+      images: imageInputs,
+      maxTokens: 4096,
+      jsonSchema: {
+        name: "play_journal",
+        schema: {
+          type: "object",
+          properties: {
+            theme: { type: "string" },
+            flow: { type: "string" },
+            reactions: { type: "string" },
+            learning: { type: "string" },
+            support: { type: "string" },
+            extension: { type: "string" },
+            homeConnection: { type: "string" },
           },
+          required: [
+            "theme",
+            "flow",
+            "reactions",
+            "learning",
+            "support",
+            "extension",
+            "homeConnection",
+          ],
+          additionalProperties: false,
         },
       },
     });
-
-    const textBlock = response.content.find(
-      (b): b is Anthropic.TextBlock => b.type === "text",
-    );
-    if (!textBlock) {
-      return NextResponse.json(
-        { error: "AI 응답이 비어 있습니다. 다시 시도해 주세요." },
-        { status: 502 },
-      );
-    }
 
     let parsed: {
       theme: string;
@@ -260,7 +237,7 @@ ${note.trim() || "(미입력 — 사진만 보고 추론)"}
       homeConnection: string;
     };
     try {
-      parsed = JSON.parse(textBlock.text);
+      parsed = JSON.parse(result.text);
     } catch {
       return NextResponse.json(
         { error: "AI 응답을 파싱하지 못했습니다. 다시 시도해 주세요." },
@@ -270,16 +247,11 @@ ${note.trim() || "(미입력 — 사진만 보고 추론)"}
 
     return NextResponse.json({ journal: parsed });
   } catch (e) {
-    if (e instanceof Anthropic.APIError) {
-      const message =
-        e.status === 401
-          ? "API 키가 유효하지 않습니다."
-          : e.status === 429
-            ? "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요."
-            : e.status === 413
-              ? "사진 용량이 너무 커요. 더 작은 사진을 사용해 주세요."
-              : `AI 호출 중 오류가 발생했습니다 (${e.status}).`;
-      return NextResponse.json({ error: message }, { status: e.status ?? 500 });
+    if (e instanceof ProviderError) {
+      return NextResponse.json(
+        { error: e.message },
+        { status: e.status === 401 ? 401 : e.status === 429 ? 429 : 500 },
+      );
     }
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "알 수 없는 오류" },

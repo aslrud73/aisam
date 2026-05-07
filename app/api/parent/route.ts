@@ -1,5 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { createProvider, parseAuth, ProviderError } from "@/app/lib/providers";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -91,14 +91,18 @@ const SYSTEM_PROMPT = `당신은 15년 경력의 한국 유치원·어린이집 
 - 끝 인사는 짧게: "감사합니다." 정도. "행복한 하루 되세요^^" 같은 과한 마무리 금지
 
 [출력]
-오로지 답변 본문 텍스트만 출력. 줄바꿈은 자연스러운 단락 구분 위치에 사용. 메타 설명, 머리말, 코드블록, 따옴표 감싸기 모두 금지.`;
+JSON 객체 하나로만 응답. 형식: {"draft": "답변 본문 텍스트"}
+draft 필드 안에는 학부모님께 보낼 답변 본문만. 줄바꿈은 자연스러운 단락 구분에 \\n 사용. 메타 설명·머리말·따옴표 감싸기 금지.`;
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다." },
-      { status: 500 },
-    );
+  let auth;
+  try {
+    auth = parseAuth(req);
+  } catch (e) {
+    if (e instanceof ProviderError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
   }
 
   let body: RequestBody;
@@ -116,8 +120,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const situationGuide =
-    SITUATION_GUIDE[situation] ?? SITUATION_GUIDE.general;
+  const situationGuide = SITUATION_GUIDE[situation] ?? SITUATION_GUIDE.general;
   const toneGuide = TONE_GUIDE[tone] ?? TONE_GUIDE.warm;
 
   const userPrompt = `[상황 분류]
@@ -136,46 +139,42 @@ ${parentMessage.trim()}
 위 5대 원칙을 철저히 준수해서, 이 학부모님께 보낼 답변 초안을 작성해 주세요.
 - 다른 아이 이름이 학부모 메시지에 등장해도 답변에는 절대 등장 금지.
 - 진단·평가·낙인 표현 절대 금지.
-- 답변 본문 텍스트만 출력 (메타 설명, 머리말, 따옴표 감싸기 금지).`;
+- JSON 형식으로 {"draft": "..."} 형태로만 응답.`;
 
-  const client = new Anthropic();
+  const provider = createProvider(auth.provider, auth.apiKey, auth.model);
 
   try {
-    const response = await client.messages.create({
-      model: "claude-opus-4-7",
-      max_tokens: 2048,
-      thinking: { type: "adaptive" },
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
+    const result = await provider.generate({
+      systemPrompt: SYSTEM_PROMPT,
+      userText: userPrompt,
+      maxTokens: 2048,
+      jsonSchema: {
+        name: "parent_reply",
+        schema: {
+          type: "object",
+          properties: {
+            draft: { type: "string" },
+          },
+          required: ["draft"],
+          additionalProperties: false,
         },
-      ],
-      messages: [{ role: "user", content: userPrompt }],
+      },
     });
 
-    const textBlock = response.content.find(
-      (b): b is Anthropic.TextBlock => b.type === "text",
-    );
-    if (!textBlock) {
-      return NextResponse.json(
-        { error: "AI 응답이 비어 있습니다. 다시 시도해 주세요." },
-        { status: 502 },
-      );
+    let parsed: { draft: string };
+    try {
+      parsed = JSON.parse(result.text);
+    } catch {
+      // Fallback: maybe the model returned plain text — accept it as-is.
+      return NextResponse.json({ draft: result.text.trim() });
     }
-
-    const draft = textBlock.text.trim();
-    return NextResponse.json({ draft });
+    return NextResponse.json({ draft: (parsed.draft ?? "").trim() });
   } catch (e) {
-    if (e instanceof Anthropic.APIError) {
-      const message =
-        e.status === 401
-          ? "API 키가 유효하지 않습니다."
-          : e.status === 429
-            ? "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요."
-            : `AI 호출 중 오류가 발생했습니다 (${e.status}).`;
-      return NextResponse.json({ error: message }, { status: e.status ?? 500 });
+    if (e instanceof ProviderError) {
+      return NextResponse.json(
+        { error: e.message },
+        { status: e.status === 401 ? 401 : e.status === 429 ? 429 : 500 },
+      );
     }
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "알 수 없는 오류" },

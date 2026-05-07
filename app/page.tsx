@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getAuthHeaders } from "./lib/settings";
+import { SetupBanner } from "./components/SetupBanner";
 
 type MealStatus = "잘먹음" | "보통" | "안먹음" | "";
 type MoodStatus = "좋음" | "보통" | "안좋음" | "";
@@ -180,7 +182,7 @@ export default function Page() {
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify({
           className,
           todayActivity,
@@ -235,7 +237,8 @@ export default function Page() {
 
   return (
     <main className="min-h-screen pb-24">
-      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-6">
+      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-4">
+        <SetupBanner />
         {/* Class name */}
         <div className="flex items-center justify-between">
           <h1 className="font-display text-xl text-stone-800">오늘 기록</h1>

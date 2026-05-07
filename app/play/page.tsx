@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { getAuthHeaders } from "../lib/settings";
+import { SetupBanner } from "../components/SetupBanner";
 
 const AGE_OPTIONS = [
   { id: "0-1", label: "만 0~1세" },
@@ -133,7 +135,7 @@ export default function PlayPage() {
     try {
       const res = await fetch("/api/play", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify({
           images: images.map((i) => i.dataUrl),
           note,
@@ -171,6 +173,7 @@ export default function PlayPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-5 py-8 pb-24 space-y-6">
+      <SetupBanner />
       <div>
         <h1 className="font-display text-2xl text-stone-800">놀이기록 도우미</h1>
         <p className="text-sm text-stone-500 mt-1 leading-relaxed">

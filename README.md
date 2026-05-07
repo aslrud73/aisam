@@ -28,25 +28,26 @@
 ## 기술
 
 - **Next.js 14 + TypeScript + Tailwind CSS**
-- **Claude Opus 4.7** (`@anthropic-ai/sdk`)
-  - 적응형 사고 (`thinking: { type: "adaptive" }`)
-  - 시스템 프롬프트 캐싱 (반복 호출 비용 절감)
-  - 구조화된 JSON 스키마 출력 (안정적인 파싱)
-- **localStorage** 기반 명단 저장 (별도 DB 없이도 동작)
+- **사용자 본인 AI API 키 (BYO)** — Anthropic Claude · OpenAI · Google Gemini 중 선택
+  - 키와 모든 데이터는 사용자 기기의 localStorage / IndexedDB에만 저장
+  - 서버는 단순 중계 역할만 (키·데이터 무저장)
+- 모델 옵션:
+  - Claude: Sonnet 4.6 (추천) · Opus 4.7 · Haiku 4.5
+  - OpenAI: GPT-4o mini · GPT-4o · GPT-4.1
+  - Gemini: 2.0 Flash · 2.5 Flash · 2.5 Pro
+- 시스템 프롬프트 캐싱(Claude) 및 구조화된 JSON 스키마 출력으로 안정성 확보
 
 ## 로컬 실행
 
 ```bash
-# 1. API 키 설정
-cp .env.example .env.local
-# .env.local 에 ANTHROPIC_API_KEY=sk-ant-... 입력
-
-# 2. 의존성 설치 및 실행
 npm install
 npm run dev
 ```
 
-브라우저에서 `http://localhost:3000` 접속.
+브라우저에서 `http://localhost:3000` 접속 → 우측 상단 **설정** 탭에서 본인의
+AI 프로바이더와 API 키 등록 → 사용 시작.
+
+별도의 환경변수 설정은 필요 없습니다.
 
 ## 프로젝트 구조
 

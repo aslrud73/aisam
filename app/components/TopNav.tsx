@@ -7,6 +7,7 @@ const TABS = [
   { href: "/", label: "오늘 기록" },
   { href: "/parent", label: "학부모 답변" },
   { href: "/play", label: "놀이기록" },
+  { href: "/settings", label: "설정" },
 ];
 
 export function TopNav() {
