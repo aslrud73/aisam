@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { getAuthHeaders } from "../lib/settings";
+import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
+import { saveParentReply, todayISO } from "../lib/db";
 
 type Situation =
   | "general"
@@ -68,6 +69,20 @@ export default function ParentPage() {
       }
       const data: { draft: string } = await res.json();
       setDraft(data.draft ?? "");
+
+      const settings = loadSettings();
+      saveParentReply({
+        date: todayISO(),
+        childName: childName.trim() || undefined,
+        parentMessage: parentMessage.trim(),
+        extraContext: extraContext.trim() || undefined,
+        situation,
+        tone,
+        draft: data.draft ?? "",
+        provider: settings?.provider ?? "unknown",
+        model: settings?.model ?? "unknown",
+        createdAt: Date.now(),
+      }).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {

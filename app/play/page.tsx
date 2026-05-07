@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { getAuthHeaders } from "../lib/settings";
+import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
+import { savePlayJournal, todayISO } from "../lib/db";
 
 const AGE_OPTIONS = [
   { id: "0-1", label: "만 0~1세" },
@@ -149,6 +150,19 @@ export default function PlayPage() {
       }
       const data: { journal: PlayJournal } = await res.json();
       setJournal(data.journal);
+
+      const settings = loadSettings();
+      savePlayJournal({
+        date: todayISO(),
+        activityName: activityName.trim() || undefined,
+        ageBand: age,
+        note: note.trim() || undefined,
+        ...data.journal,
+        photoThumbs: images.map((i) => i.dataUrl),
+        provider: settings?.provider ?? "unknown",
+        model: settings?.model ?? "unknown",
+        createdAt: Date.now(),
+      }).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {

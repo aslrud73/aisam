@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAuthHeaders } from "./lib/settings";
+import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { SetupBanner } from "./components/SetupBanner";
+import { saveDailyEntries, todayISO, type DailyEntryRecord } from "./lib/db";
 
 type MealStatus = "잘먹음" | "보통" | "안먹음" | "";
 type MoodStatus = "좋음" | "보통" | "안좋음" | "";
@@ -203,6 +204,35 @@ export default function Page() {
       const map: Record<string, string> = {};
       for (const n of data.notes) map[n.childId] = n.text;
       setNotes(map);
+
+      // Persist to IndexedDB so monthly reports / export have the history
+      const settings = loadSettings();
+      const date = todayISO();
+      const records: DailyEntryRecord[] = [];
+      for (const n of data.notes) {
+        const child = children.find((c) => c.id === n.childId);
+        if (!child) continue;
+        const e = entries[child.id];
+        records.push({
+          kidId: child.id,
+          kidName: child.name,
+          className,
+          date,
+          todayActivity,
+          meal: e?.meal || undefined,
+          mood: e?.mood || undefined,
+          nap: e?.nap || undefined,
+          memo: e?.memo || undefined,
+          docType,
+          text: n.text,
+          provider: settings?.provider ?? "unknown",
+          model: settings?.model ?? "unknown",
+          createdAt: Date.now(),
+        });
+      }
+      saveDailyEntries(records).catch(() => {
+        // Don't surface DB errors — generation already succeeded.
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {

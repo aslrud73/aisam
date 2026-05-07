@@ -11,6 +11,7 @@ import {
   type ProviderId,
 } from "../lib/settings";
 import { PROVIDER_LABELS } from "../lib/providers/types";
+import { DataSection } from "../components/DataSection";
 
 const PROVIDER_DOCS: Record<ProviderId, { signupUrl: string; keyHint: string }> = {
   claude: {
@@ -224,6 +225,9 @@ export default function SettingsPage() {
           <span className="text-sm text-sage">✓ 저장됨 ({savedAt})</span>
         )}
       </section>
+
+      {/* 데이터 관리 */}
+      <DataSection />
 
       {/* 개인정보 안내 */}
       <section className="bg-cream/60 rounded-2xl border border-stone-200 p-6 text-sm text-stone-600 leading-relaxed space-y-2">
