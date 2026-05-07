@@ -24,7 +24,10 @@ interface GeneratedNote {
   text: string;
 }
 
-const STORAGE_KEY = "oneul-notification-state-v1";
+const STORAGE_KEY = "oneul-notification-state-v2";
+
+type DocType = "alrim" | "gwanchal";
+type ToneStyle = "warm" | "concise" | "detailed";
 
 interface PersistedState {
   className: string;
@@ -32,14 +35,31 @@ interface PersistedState {
   todayActivity: string;
   entries: Record<string, DailyEntry>;
   tone: ToneStyle;
+  docType: DocType;
 }
 
-type ToneStyle = "warm" | "concise" | "detailed";
+const DOC_LABELS: Record<DocType, { name: string; sub: string }> = {
+  alrim: {
+    name: "알림장",
+    sub: "매일 학부모님께 보내는 일일 기록",
+  },
+  gwanchal: {
+    name: "관찰일지",
+    sub: "누리과정 영역과 연계된 전문 기록",
+  },
+};
 
-const TONE_LABELS: Record<ToneStyle, string> = {
-  warm: "따뜻하고 정성스럽게",
-  concise: "간결하고 깔끔하게",
-  detailed: "자세하고 풍부하게",
+const TONE_LABELS: Record<DocType, Record<ToneStyle, string>> = {
+  alrim: {
+    warm: "따뜻하고 정성스럽게",
+    concise: "간결하고 깔끔하게",
+    detailed: "자세하고 풍부하게",
+  },
+  gwanchal: {
+    warm: "전문적이되 따뜻하게",
+    concise: "객관적이고 간결하게",
+    detailed: "상세하고 풍부하게",
+  },
 };
 
 function uid() {
@@ -56,6 +76,7 @@ export default function Page() {
   const [todayActivity, setTodayActivity] = useState("");
   const [entries, setEntries] = useState<Record<string, DailyEntry>>({});
   const [tone, setTone] = useState<ToneStyle>("warm");
+  const [docType, setDocType] = useState<DocType>("alrim");
   const [newName, setNewName] = useState("");
   const [bulkInput, setBulkInput] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -74,6 +95,7 @@ export default function Page() {
         setTodayActivity(parsed.todayActivity ?? "");
         setEntries(parsed.entries ?? {});
         setTone(parsed.tone ?? "warm");
+        setDocType(parsed.docType ?? "alrim");
       }
     } catch {}
     setHydrated(true);
@@ -87,9 +109,10 @@ export default function Page() {
       todayActivity,
       entries,
       tone,
+      docType,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [hydrated, className, children, todayActivity, entries, tone]);
+  }, [hydrated, className, children, todayActivity, entries, tone, docType]);
 
   function addChild(name: string) {
     const trimmed = name.trim();
@@ -162,6 +185,7 @@ export default function Page() {
           className,
           todayActivity,
           tone,
+          docType,
           children: children.map((c) => ({
             id: c.id,
             name: c.name,
@@ -216,7 +240,7 @@ export default function Page() {
           <div>
             <h1 className="font-display text-2xl text-stone-800">오늘알림장</h1>
             <p className="text-xs text-stone-500 mt-0.5">
-              유치원·어린이집 선생님을 위한 AI 알림장 자동작성
+              유치원·어린이집 선생님을 위한 AI 기록 자동화
             </p>
           </div>
           <div className="flex items-center gap-2 text-sm">
@@ -230,7 +254,35 @@ export default function Page() {
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-5 pt-8 space-y-8">
+      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-8">
+        {/* Mode switcher */}
+        <div className="bg-white rounded-2xl border border-stone-200 p-2 grid grid-cols-2 gap-2">
+          {(Object.keys(DOC_LABELS) as DocType[]).map((d) => {
+            const active = docType === d;
+            const info = DOC_LABELS[d];
+            return (
+              <button
+                key={d}
+                onClick={() => setDocType(d)}
+                className={`text-left px-4 py-3 rounded-xl transition ${
+                  active
+                    ? "bg-terracotta text-white"
+                    : "bg-transparent text-stone-700 hover:bg-stone-50"
+                }`}
+              >
+                <div className="font-display text-base">{info.name}</div>
+                <div
+                  className={`text-xs mt-0.5 ${
+                    active ? "text-white/80" : "text-stone-500"
+                  }`}
+                >
+                  {info.sub}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Step 1: 아이 명단 */}
         <section className="bg-white rounded-2xl border border-stone-200 p-6">
           <div className="flex items-baseline justify-between mb-4">
@@ -348,8 +400,9 @@ export default function Page() {
               )}
             </div>
             <p className="text-sm text-stone-500 mb-4">
-              빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요. 비워두셔도
-              괜찮아요.
+              {docType === "gwanchal"
+                ? "각 아이의 관찰된 모습을 짧게 메모해 주세요. 식사·기분·낮잠은 참고만 됩니다."
+                : "빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요. 비워두셔도 괜찮아요."}
             </p>
             <div className="space-y-3">
               {children.map((c) => (
@@ -358,6 +411,7 @@ export default function Page() {
                   child={c}
                   entry={entries[c.id] ?? emptyEntry(c.id)}
                   onChange={(patch) => updateEntry(c.id, patch)}
+                  docType={docType}
                 />
               ))}
             </div>
@@ -367,11 +421,12 @@ export default function Page() {
         {/* Step 4: 생성 */}
         <section className="bg-white rounded-2xl border border-stone-200 p-6">
           <h2 className="font-display text-lg text-stone-800 mb-4">
-            <span className="text-terracotta mr-2">4</span>알림장 생성
+            <span className="text-terracotta mr-2">4</span>
+            {DOC_LABELS[docType].name} 생성
           </h2>
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className="text-sm text-stone-600">문체</span>
-            {(Object.keys(TONE_LABELS) as ToneStyle[]).map((t) => (
+            {(Object.keys(TONE_LABELS[docType]) as ToneStyle[]).map((t) => (
               <label
                 key={t}
                 className={`px-3 py-1.5 rounded-full border text-sm cursor-pointer transition ${
@@ -388,7 +443,7 @@ export default function Page() {
                   onChange={() => setTone(t)}
                   className="hidden"
                 />
-                {TONE_LABELS[t]}
+                {TONE_LABELS[docType][t]}
               </label>
             ))}
           </div>
@@ -398,9 +453,14 @@ export default function Page() {
             className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
           >
             {generating
-              ? "AI가 알림장을 작성하고 있어요..."
-              : `${children.length}명의 알림장 한 번에 생성하기`}
+              ? `AI가 ${DOC_LABELS[docType].name}을 작성하고 있어요...`
+              : `${children.length}명의 ${DOC_LABELS[docType].name} 한 번에 생성하기`}
           </button>
+          <p className="mt-3 text-xs text-stone-500 leading-relaxed">
+            ※ AI가 작성한 초안입니다. 학부모님이나 외부에 전송하기 전에 반드시
+            선생님이 검토·수정해 주세요. 진단·평가적 표현, 다른 아이 이름은
+            자동으로 걸러지지만 100% 보장되지 않습니다.
+          </p>
           {error && (
             <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
               {error}
@@ -413,7 +473,8 @@ export default function Page() {
           <section className="bg-white rounded-2xl border border-stone-200 p-6">
             <div className="flex items-baseline justify-between mb-4">
               <h2 className="font-display text-lg text-stone-800">
-                <span className="text-terracotta mr-2">5</span>완성된 알림장
+                <span className="text-terracotta mr-2">5</span>완성된{" "}
+                {DOC_LABELS[docType].name}
               </h2>
               <button
                 onClick={copyAll}
@@ -445,7 +506,7 @@ export default function Page() {
                       onChange={(e) =>
                         setNotes((prev) => ({ ...prev, [c.id]: e.target.value }))
                       }
-                      rows={6}
+                      rows={docType === "gwanchal" ? 12 : 6}
                       className="w-full text-sm leading-relaxed bg-transparent resize-none focus:outline-none text-stone-700"
                     />
                   </div>
@@ -471,42 +532,62 @@ function ChildRow({
   child,
   entry,
   onChange,
+  docType,
 }: {
   child: Child;
   entry: DailyEntry;
   onChange: (patch: Partial<DailyEntry>) => void;
+  docType: DocType;
 }) {
+  const isGwanchal = docType === "gwanchal";
+  const placeholder = isGwanchal
+    ? "오늘 관찰한 모습 (예: 블록으로 긴 다리를 만들고 친구와 함께 놀이 확장, 동화책 보고 질문 많이 함)"
+    : "특이사항 (예: 친구랑 블록놀이 즐겁게 함, 콧물 살짝 있음)";
   return (
     <div className="border border-stone-200 rounded-xl p-3 bg-cream/30">
       <div className="flex flex-wrap items-center gap-2 mb-2">
         <span className="font-display text-stone-800 min-w-[3.5rem]">
           {child.name}
         </span>
-        <ToggleGroup
-          label="식사"
-          options={["잘먹음", "보통", "안먹음"] as const}
-          value={entry.meal}
-          onChange={(v) => onChange({ meal: v as MealStatus })}
-        />
-        <ToggleGroup
-          label="기분"
-          options={["좋음", "보통", "안좋음"] as const}
-          value={entry.mood}
-          onChange={(v) => onChange({ mood: v as MoodStatus })}
-        />
-        <ToggleGroup
-          label="낮잠"
-          options={["푹잠", "뒤척임", "안잠"] as const}
-          value={entry.nap}
-          onChange={(v) => onChange({ nap: v as NapStatus })}
-        />
+        {!isGwanchal && (
+          <>
+            <ToggleGroup
+              label="식사"
+              options={["잘먹음", "보통", "안먹음"] as const}
+              value={entry.meal}
+              onChange={(v) => onChange({ meal: v as MealStatus })}
+            />
+            <ToggleGroup
+              label="기분"
+              options={["좋음", "보통", "안좋음"] as const}
+              value={entry.mood}
+              onChange={(v) => onChange({ mood: v as MoodStatus })}
+            />
+            <ToggleGroup
+              label="낮잠"
+              options={["푹잠", "뒤척임", "안잠"] as const}
+              value={entry.nap}
+              onChange={(v) => onChange({ nap: v as NapStatus })}
+            />
+          </>
+        )}
       </div>
-      <input
-        value={entry.memo}
-        onChange={(e) => onChange({ memo: e.target.value })}
-        placeholder="특이사항 (예: 친구랑 블록놀이 즐겁게 함, 콧물 살짝 있음)"
-        className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none"
-      />
+      {isGwanchal ? (
+        <textarea
+          value={entry.memo}
+          onChange={(e) => onChange({ memo: e.target.value })}
+          placeholder={placeholder}
+          rows={2}
+          className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none resize-none"
+        />
+      ) : (
+        <input
+          value={entry.memo}
+          onChange={(e) => onChange({ memo: e.target.value })}
+          placeholder={placeholder}
+          className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none"
+        />
+      )}
     </div>
   );
 }
