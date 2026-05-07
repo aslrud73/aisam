@@ -1,0 +1,546 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type MealStatus = "잘먹음" | "보통" | "안먹음" | "";
+type MoodStatus = "좋음" | "보통" | "안좋음" | "";
+type NapStatus = "푹잠" | "뒤척임" | "안잠" | "";
+
+interface Child {
+  id: string;
+  name: string;
+}
+
+interface DailyEntry {
+  childId: string;
+  meal: MealStatus;
+  mood: MoodStatus;
+  nap: NapStatus;
+  memo: string;
+}
+
+interface GeneratedNote {
+  childId: string;
+  text: string;
+}
+
+const STORAGE_KEY = "oneul-notification-state-v1";
+
+interface PersistedState {
+  className: string;
+  children: Child[];
+  todayActivity: string;
+  entries: Record<string, DailyEntry>;
+  tone: ToneStyle;
+}
+
+type ToneStyle = "warm" | "concise" | "detailed";
+
+const TONE_LABELS: Record<ToneStyle, string> = {
+  warm: "따뜻하고 정성스럽게",
+  concise: "간결하고 깔끔하게",
+  detailed: "자세하고 풍부하게",
+};
+
+function uid() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function emptyEntry(childId: string): DailyEntry {
+  return { childId, meal: "", mood: "", nap: "", memo: "" };
+}
+
+export default function Page() {
+  const [className, setClassName] = useState("햇살반");
+  const [children, setChildren] = useState<Child[]>([]);
+  const [todayActivity, setTodayActivity] = useState("");
+  const [entries, setEntries] = useState<Record<string, DailyEntry>>({});
+  const [tone, setTone] = useState<ToneStyle>("warm");
+  const [newName, setNewName] = useState("");
+  const [bulkInput, setBulkInput] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed: PersistedState = JSON.parse(raw);
+        setClassName(parsed.className ?? "햇살반");
+        setChildren(parsed.children ?? []);
+        setTodayActivity(parsed.todayActivity ?? "");
+        setEntries(parsed.entries ?? {});
+        setTone(parsed.tone ?? "warm");
+      }
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const state: PersistedState = {
+      className,
+      children,
+      todayActivity,
+      entries,
+      tone,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [hydrated, className, children, todayActivity, entries, tone]);
+
+  function addChild(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const id = uid();
+    setChildren((prev) => [...prev, { id, name: trimmed }]);
+    setEntries((prev) => ({ ...prev, [id]: emptyEntry(id) }));
+  }
+
+  function addBulk() {
+    const names = bulkInput
+      .split(/[\n,]/)
+      .map((n) => n.trim())
+      .filter(Boolean);
+    if (names.length === 0) return;
+    const newChildren: Child[] = names.map((name) => ({ id: uid(), name }));
+    setChildren((prev) => [...prev, ...newChildren]);
+    setEntries((prev) => {
+      const next = { ...prev };
+      for (const c of newChildren) next[c.id] = emptyEntry(c.id);
+      return next;
+    });
+    setBulkInput("");
+  }
+
+  function removeChild(id: string) {
+    setChildren((prev) => prev.filter((c) => c.id !== id));
+    setEntries((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setNotes((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }
+
+  function updateEntry(id: string, patch: Partial<DailyEntry>) {
+    setEntries((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] ?? emptyEntry(id)), ...patch },
+    }));
+  }
+
+  function clearToday() {
+    if (!confirm("오늘 입력한 모든 내용을 지울까요? (아이 명단은 유지됩니다)"))
+      return;
+    setTodayActivity("");
+    const fresh: Record<string, DailyEntry> = {};
+    for (const c of children) fresh[c.id] = emptyEntry(c.id);
+    setEntries(fresh);
+    setNotes({});
+  }
+
+  async function generate() {
+    if (children.length === 0) {
+      setError("먼저 아이들을 등록해 주세요.");
+      return;
+    }
+    setError(null);
+    setGenerating(true);
+    setNotes({});
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          className,
+          todayActivity,
+          tone,
+          children: children.map((c) => ({
+            id: c.id,
+            name: c.name,
+            entry: entries[c.id] ?? emptyEntry(c.id),
+          })),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `요청 실패 (${res.status})`);
+      }
+      const data: { notes: GeneratedNote[] } = await res.json();
+      const map: Record<string, string> = {};
+      for (const n of data.notes) map[n.childId] = n.text;
+      setNotes(map);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "알 수 없는 오류");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function copy(childId: string) {
+    const text = notes[childId];
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setCopiedId(childId);
+    setTimeout(() => setCopiedId((prev) => (prev === childId ? null : prev)), 1500);
+  }
+
+  async function copyAll() {
+    if (children.length === 0) return;
+    const lines = children
+      .filter((c) => notes[c.id])
+      .map((c) => `[${c.name}]\n${notes[c.id]}`)
+      .join("\n\n―――\n\n");
+    if (!lines) return;
+    await navigator.clipboard.writeText(lines);
+    setCopiedId("ALL");
+    setTimeout(() => setCopiedId((prev) => (prev === "ALL" ? null : prev)), 1500);
+  }
+
+  const hasAnyEntry = children.some((c) => {
+    const e = entries[c.id];
+    return e && (e.meal || e.mood || e.nap || e.memo);
+  });
+
+  return (
+    <main className="min-h-screen pb-24">
+      <header className="border-b border-stone-200 bg-cream/80 backdrop-blur sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="font-display text-2xl text-stone-800">오늘알림장</h1>
+            <p className="text-xs text-stone-500 mt-0.5">
+              유치원·어린이집 선생님을 위한 AI 알림장 자동작성
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-stone-500">반 이름</span>
+            <input
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border border-stone-300 bg-white w-28 focus:border-terracotta focus:outline-none"
+            />
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-5xl mx-auto px-5 pt-8 space-y-8">
+        {/* Step 1: 아이 명단 */}
+        <section className="bg-white rounded-2xl border border-stone-200 p-6">
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="font-display text-lg text-stone-800">
+              <span className="text-terracotta mr-2">1</span>우리 반 아이들
+            </h2>
+            <span className="text-sm text-stone-500">
+              {children.length}명 등록됨
+            </span>
+          </div>
+
+          {children.length === 0 ? (
+            <div className="text-center py-8 text-stone-400 text-sm">
+              아래에서 아이 이름을 추가해 주세요. 한 번 등록하면 매일 다시
+              입력할 필요가 없어요.
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {children.map((c) => (
+                <span
+                  key={c.id}
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 rounded-full text-sm"
+                >
+                  {c.name}
+                  <button
+                    onClick={() => removeChild(c.id)}
+                    className="text-stone-400 hover:text-red-500 text-xs"
+                    aria-label={`${c.name} 삭제`}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-2 flex-1">
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    addChild(newName);
+                    setNewName("");
+                  }
+                }}
+                placeholder="이름 입력 후 Enter"
+                className="flex-1 px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  addChild(newName);
+                  setNewName("");
+                }}
+                className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 text-sm whitespace-nowrap"
+              >
+                추가
+              </button>
+            </div>
+          </div>
+          <details className="mt-3 text-sm">
+            <summary className="text-stone-500 cursor-pointer hover:text-stone-700">
+              여러 명 한 번에 등록
+            </summary>
+            <div className="mt-2 flex gap-2">
+              <textarea
+                value={bulkInput}
+                onChange={(e) => setBulkInput(e.target.value)}
+                placeholder="이름들을 줄바꿈 또는 쉼표로 구분"
+                rows={3}
+                className="flex-1 px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm"
+              />
+              <button
+                onClick={addBulk}
+                className="px-4 py-2 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 text-sm self-start"
+              >
+                일괄 추가
+              </button>
+            </div>
+          </details>
+        </section>
+
+        {/* Step 2: 오늘의 활동 */}
+        <section className="bg-white rounded-2xl border border-stone-200 p-6">
+          <h2 className="font-display text-lg text-stone-800 mb-4">
+            <span className="text-terracotta mr-2">2</span>오늘의 활동
+          </h2>
+          <textarea
+            value={todayActivity}
+            onChange={(e) => setTodayActivity(e.target.value)}
+            placeholder="예: 봄꽃 그리기 미술활동을 했고, 바깥놀이로 모래놀이를 했어요. 점심은 닭볶음탕."
+            rows={3}
+            className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none"
+          />
+          <p className="text-xs text-stone-500 mt-2">
+            한 번 입력하면 모든 아이의 알림장에 자연스럽게 반영돼요.
+          </p>
+        </section>
+
+        {/* Step 3: 아이별 빠른 입력 */}
+        {children.length > 0 && (
+          <section className="bg-white rounded-2xl border border-stone-200 p-6">
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="font-display text-lg text-stone-800">
+                <span className="text-terracotta mr-2">3</span>아이별 오늘 모습
+              </h2>
+              {hasAnyEntry && (
+                <button
+                  onClick={clearToday}
+                  className="text-xs text-stone-500 hover:text-red-500"
+                >
+                  오늘 입력 모두 지우기
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-stone-500 mb-4">
+              빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요. 비워두셔도
+              괜찮아요.
+            </p>
+            <div className="space-y-3">
+              {children.map((c) => (
+                <ChildRow
+                  key={c.id}
+                  child={c}
+                  entry={entries[c.id] ?? emptyEntry(c.id)}
+                  onChange={(patch) => updateEntry(c.id, patch)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Step 4: 생성 */}
+        <section className="bg-white rounded-2xl border border-stone-200 p-6">
+          <h2 className="font-display text-lg text-stone-800 mb-4">
+            <span className="text-terracotta mr-2">4</span>알림장 생성
+          </h2>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <span className="text-sm text-stone-600">문체</span>
+            {(Object.keys(TONE_LABELS) as ToneStyle[]).map((t) => (
+              <label
+                key={t}
+                className={`px-3 py-1.5 rounded-full border text-sm cursor-pointer transition ${
+                  tone === t
+                    ? "bg-terracotta text-white border-terracotta"
+                    : "bg-white text-stone-700 border-stone-300 hover:border-stone-400"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="tone"
+                  value={t}
+                  checked={tone === t}
+                  onChange={() => setTone(t)}
+                  className="hidden"
+                />
+                {TONE_LABELS[t]}
+              </label>
+            ))}
+          </div>
+          <button
+            onClick={generate}
+            disabled={generating || children.length === 0}
+            className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
+          >
+            {generating
+              ? "AI가 알림장을 작성하고 있어요..."
+              : `${children.length}명의 알림장 한 번에 생성하기`}
+          </button>
+          {error && (
+            <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
+        </section>
+
+        {/* Step 5: 결과 */}
+        {Object.keys(notes).length > 0 && (
+          <section className="bg-white rounded-2xl border border-stone-200 p-6">
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="font-display text-lg text-stone-800">
+                <span className="text-terracotta mr-2">5</span>완성된 알림장
+              </h2>
+              <button
+                onClick={copyAll}
+                className="text-sm px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
+              >
+                {copiedId === "ALL" ? "✓ 전체 복사됨" : "전체 복사"}
+              </button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {children.map((c) => {
+                const text = notes[c.id];
+                if (!text) return null;
+                return (
+                  <div
+                    key={c.id}
+                    className="border border-stone-200 rounded-xl p-4 bg-cream/40"
+                  >
+                    <div className="flex items-baseline justify-between mb-2">
+                      <h3 className="font-display text-stone-800">{c.name}</h3>
+                      <button
+                        onClick={() => copy(c.id)}
+                        className="text-xs px-2 py-1 text-stone-600 hover:text-terracotta"
+                      >
+                        {copiedId === c.id ? "✓ 복사됨" : "복사"}
+                      </button>
+                    </div>
+                    <textarea
+                      value={text}
+                      onChange={(e) =>
+                        setNotes((prev) => ({ ...prev, [c.id]: e.target.value }))
+                      }
+                      rows={6}
+                      className="w-full text-sm leading-relaxed bg-transparent resize-none focus:outline-none text-stone-700"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-stone-500 mt-4">
+              내용은 직접 수정할 수 있어요. 복사 후 키즈노트·카카오톡·문자에
+              붙여넣으세요.
+            </p>
+          </section>
+        )}
+      </div>
+
+      <footer className="max-w-5xl mx-auto px-5 mt-16 text-center text-xs text-stone-400">
+        오늘알림장 · 선생님의 1시간을 돌려드립니다
+      </footer>
+    </main>
+  );
+}
+
+function ChildRow({
+  child,
+  entry,
+  onChange,
+}: {
+  child: Child;
+  entry: DailyEntry;
+  onChange: (patch: Partial<DailyEntry>) => void;
+}) {
+  return (
+    <div className="border border-stone-200 rounded-xl p-3 bg-cream/30">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <span className="font-display text-stone-800 min-w-[3.5rem]">
+          {child.name}
+        </span>
+        <ToggleGroup
+          label="식사"
+          options={["잘먹음", "보통", "안먹음"] as const}
+          value={entry.meal}
+          onChange={(v) => onChange({ meal: v as MealStatus })}
+        />
+        <ToggleGroup
+          label="기분"
+          options={["좋음", "보통", "안좋음"] as const}
+          value={entry.mood}
+          onChange={(v) => onChange({ mood: v as MoodStatus })}
+        />
+        <ToggleGroup
+          label="낮잠"
+          options={["푹잠", "뒤척임", "안잠"] as const}
+          value={entry.nap}
+          onChange={(v) => onChange({ nap: v as NapStatus })}
+        />
+      </div>
+      <input
+        value={entry.memo}
+        onChange={(e) => onChange({ memo: e.target.value })}
+        placeholder="특이사항 (예: 친구랑 블록놀이 즐겁게 함, 콧물 살짝 있음)"
+        className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none"
+      />
+    </div>
+  );
+}
+
+function ToggleGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly T[];
+  value: string;
+  onChange: (v: T | "") => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs text-stone-500 mr-1">{label}</span>
+      {options.map((opt) => {
+        const active = value === opt;
+        return (
+          <button
+            key={opt}
+            onClick={() => onChange(active ? "" : opt)}
+            className={`px-2.5 py-1 text-xs rounded-md border transition ${
+              active
+                ? "bg-sage text-white border-sage"
+                : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+            }`}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
