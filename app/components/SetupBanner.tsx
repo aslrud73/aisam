@@ -3,17 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { isConfigured } from "../lib/settings";
+import { Icon } from "./Icon";
 
-/**
- * Renders a one-line nudge when the AI provider/key isn't set yet.
- * Returns null once configured so we don't take up space.
- */
 export function SetupBanner() {
   const [configured, setConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
     setConfigured(isConfigured());
-    // Re-check when localStorage changes from another tab
     const onStorage = () => setConfigured(isConfigured());
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -22,18 +18,24 @@ export function SetupBanner() {
   if (configured !== false) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-      <div className="text-sm text-stone-700">
-        <strong>AI 키가 아직 등록되지 않았어요.</strong>{" "}
-        <span className="text-stone-600">
-          생성을 시작하려면 본인의 AI API 키가 필요합니다.
+    <div className="bg-terracotta-50 border border-terracotta-100 rounded-2xl px-4 py-4 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-card">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-terracotta-100 text-terracotta-700 shrink-0">
+          <Icon name="key" size={18} strokeWidth={1.8} />
         </span>
+        <div className="text-sm leading-relaxed">
+          <div className="font-semibold text-ink">처음 시작하시나요? 1분이면 준비 끝</div>
+          <div className="text-ink-soft mt-0.5">
+            AI 사용을 위해 본인의 API 키 등록이 한 번만 필요해요. 설정 페이지에서 차근차근 안내해 드려요.
+          </div>
+        </div>
       </div>
       <Link
         href="/settings"
-        className="shrink-0 px-3 py-1.5 bg-stone-800 text-white rounded-lg text-sm hover:bg-stone-700"
+        className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl text-sm font-medium shadow-sm hover:shadow"
       >
-        설정 열기
+        설정으로 가기
+        <Icon name="link" size={14} strokeWidth={2} />
       </Link>
     </div>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { TopNav } from "./components/TopNav";
+import { Footer } from "./components/Footer";
 
 export const metadata: Metadata = {
   title: "오늘알림장 — AI 기록 자동화",
@@ -15,9 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>
+      <body className="min-h-screen flex flex-col">
         <TopNav />
-        {children}
+        <div className="flex-1">{children}</div>
+        <Footer />
       </body>
     </html>
   );

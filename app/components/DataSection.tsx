@@ -105,34 +105,34 @@ export function DataSection() {
   }
 
   return (
-    <section className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
+    <section className="bg-paper rounded-2xl border border-warm-100 p-6 space-y-5 shadow-card">
       <div>
-        <h2 className="font-display text-lg text-stone-800">데이터 관리</h2>
-        <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-          모든 기록은 이 기기의 IndexedDB에만 저장됩니다. 다른 기기에서 쓰려면
+        <h2 className="text-lg font-semibold text-ink">데이터 관리</h2>
+        <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+          모든 기록은 이 기기의 브라우저 안에만 저장됩니다. 다른 기기에서 쓰시려면
           내보낸 백업 파일을 옮긴 뒤 가져오세요.
         </p>
       </div>
 
       {counts && (
-        <div className="grid grid-cols-3 gap-2 text-center bg-cream/40 rounded-xl p-3">
+        <div className="grid grid-cols-3 gap-2 text-center bg-cream-100 rounded-2xl p-4 border border-warm-100">
           <div>
-            <div className="text-xl font-display text-stone-800">
+            <div className="text-2xl font-semibold text-ink tabular-nums">
               {counts.dailyEntries}
             </div>
-            <div className="text-xs text-stone-500">알림장·관찰일지</div>
+            <div className="text-xs text-ink-muted mt-1">알림장·관찰일지</div>
           </div>
           <div>
-            <div className="text-xl font-display text-stone-800">
+            <div className="text-2xl font-semibold text-ink tabular-nums">
               {counts.parentReplies}
             </div>
-            <div className="text-xs text-stone-500">학부모 답변</div>
+            <div className="text-xs text-ink-muted mt-1">학부모 답변</div>
           </div>
           <div>
-            <div className="text-xl font-display text-stone-800">
+            <div className="text-2xl font-semibold text-ink tabular-nums">
               {counts.playJournals}
             </div>
-            <div className="text-xs text-stone-500">놀이기록</div>
+            <div className="text-xs text-ink-muted mt-1">놀이기록</div>
           </div>
         </div>
       )}
@@ -144,9 +144,9 @@ export function DataSection() {
             id="include-photos"
             checked={includePhotos}
             onChange={(e) => setIncludePhotos(e.target.checked)}
-            className="accent-terracotta"
+            className="accent-terracotta-500 w-4 h-4"
           />
-          <label htmlFor="include-photos" className="text-sm text-stone-600">
+          <label htmlFor="include-photos" className="text-sm text-ink-soft">
             놀이기록의 사진 썸네일도 함께 내보내기 (파일이 커집니다)
           </label>
         </div>
@@ -155,28 +155,28 @@ export function DataSection() {
           <button
             onClick={doExport}
             disabled={busy}
-            className="px-4 py-2 bg-stone-800 text-white rounded-lg text-sm hover:bg-stone-700 disabled:bg-stone-300"
+            className="px-4 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl text-sm font-medium shadow-sm disabled:bg-warm-200 disabled:cursor-not-allowed disabled:shadow-none"
           >
             전체 내보내기 (.json)
           </button>
           <button
             onClick={() => pickAndImport("merge")}
             disabled={busy}
-            className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-lg text-sm hover:bg-stone-50 disabled:opacity-50"
+            className="px-4 py-2.5 bg-paper border border-warm-200 text-ink-soft rounded-xl text-sm font-medium hover:bg-warm-50 hover:border-warm-300 disabled:opacity-50"
           >
             가져와서 병합
           </button>
           <button
             onClick={() => pickAndImport("replace")}
             disabled={busy}
-            className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-lg text-sm hover:bg-stone-50 disabled:opacity-50"
+            className="px-4 py-2.5 bg-paper border border-warm-200 text-ink-soft rounded-xl text-sm font-medium hover:bg-warm-50 hover:border-warm-300 disabled:opacity-50"
           >
             가져와서 덮어쓰기
           </button>
           <button
             onClick={clearAll}
             disabled={busy}
-            className="px-4 py-2 text-sm text-stone-600 hover:text-red-600 disabled:opacity-50"
+            className="px-4 py-2.5 text-sm text-ink-muted hover:text-red-600 disabled:opacity-50"
           >
             누적 기록 모두 삭제
           </button>
@@ -198,12 +198,12 @@ export function DataSection() {
         />
 
         {message && (
-          <p className="text-sm text-sage bg-sage/10 px-3 py-2 rounded-lg">
+          <p className="text-sm text-sage-600 bg-sage-50 border border-sage-100 px-3 py-2 rounded-xl">
             {message}
           </p>
         )}
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl">
             {error}
           </p>
         )}
