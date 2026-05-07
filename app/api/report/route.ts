@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createProvider, parseAuth, ProviderError } from "@/app/lib/providers";
+import { getGivenName, particleHint } from "@/app/lib/koreanName";
 
 export const runtime = "nodejs";
 export const maxDuration = 90;
@@ -57,6 +58,8 @@ const SYSTEM_PROMPT = `당신은 한국 유치원·어린이집의 베테랑 담
 
 - 진단·평가·낙인 표현 절대 금지: "공격성", "산만함", "발달 지연", "ADHD", "사회성 부족", "문제 행동" 등
 - 다른 아이 이름 절대 노출 금지
+- 본문에 자녀 이름을 적을 때는 반드시 **이름(given name)** 만 사용. 성(family name)은 절대 본문에 등장 금지 ("김민선이는" X → "민선이는" O)
+- 받침 유무에 따라 자연스러운 조사: 받침 있음 → "○○이는/이가/이를", 받침 없음 → "○○는/가/를"
 - 의료적 진단·처방 추측 금지
 - 누적 데이터에 부정적 표현이 있어도 따뜻하게 재해석
 - 성장의 과정으로, 단정이 아닌 묘사·격려로 서술
@@ -114,8 +117,9 @@ export async function POST(req: Request) {
     })
     .join("\n\n");
 
-  const userPrompt = `[아이 이름]
-${kidName}
+  const givenName = getGivenName(kidName);
+  const userPrompt = `[아이 이름 — 본문에는 반드시 이 이름만 사용 (성 제외)]
+${givenName} (조사 예시: ${particleHint(givenName)})
 
 [리포트 대상 기간]
 ${monthLabel}
