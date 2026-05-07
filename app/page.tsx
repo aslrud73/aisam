@@ -1,10 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { SetupBanner } from "./components/SetupBanner";
 import { Icon, type IconName } from "./components/Icon";
 import { saveDailyEntries, todayISO, type DailyEntryRecord } from "./lib/db";
+
+const ACTIVITY_EXAMPLES = [
+  "예: 봄꽃 그리기 미술활동을 했고, 바깥놀이로 모래놀이를 했어요. 점심은 닭볶음탕.",
+  "예: 동화책 '구름빵' 듣고 역할극 놀이를 했어요. 바깥놀이는 비가 와서 실내 체육으로 대체. 점심은 카레라이스.",
+  "예: 종이접기 활동(개구리 만들기), 음률 활동(봄을 노래해요). 점심은 된장찌개와 잡곡밥.",
+  "예: 텃밭에 상추 모종 심기, 물 주기 체험. 자유놀이 시간엔 블록과 인형놀이. 점심은 김밥과 미역국.",
+  "예: 신체활동(꽃길 따라 걷기), 미술(꽃잎으로 콜라주). 점심은 비빔밥, 후식 수박.",
+  "예: 모래놀이터에서 모래성 쌓기 + 색깔 분류 놀이. 점심은 스파게티와 옥수수수프.",
+];
+
+const ALRIM_MEMO_EXAMPLES = [
+  "특이사항 (예: 친구랑 블록놀이 즐겁게 함, 콧물 살짝 있음)",
+  "특이사항 (예: 새 친구에게 먼저 말 걸어줌, 점심 잘 먹음)",
+  "특이사항 (예: 낮잠 시간에 뒤척임, 평소보다 활기참)",
+  "특이사항 (예: 미술 시간에 집중도 좋음, 등원 시 살짝 울음)",
+  "특이사항 (예: 새로운 노래 흥얼거리며 따라부름, 컨디션 좋음)",
+];
+
+const GWANCHAL_MEMO_EXAMPLES = [
+  "오늘 관찰한 모습 (예: 블록으로 긴 다리를 만들고 친구와 함께 놀이 확장, 동화책 보고 질문 많이 함)",
+  "오늘 관찰한 모습 (예: 색깔별로 분류하기 시도, 친구가 도움 청하자 자발적으로 도와줌)",
+  "오늘 관찰한 모습 (예: 가위질이 능숙해짐, 자신의 작품에 이야기를 부여하며 설명)",
+  "오늘 관찰한 모습 (예: 또래와 갈등 시 말로 의사 표현 시도, 새로운 활동에 호기심)",
+  "오늘 관찰한 모습 (예: 노래 가사를 외워 부르기 시작, 신체 활동에서 균형감각 향상)",
+];
+
+function pickOne<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 type MealStatus = "잘먹음" | "보통" | "안먹음" | "";
 type MoodStatus = "좋음" | "보통" | "안좋음" | "";
@@ -84,10 +113,16 @@ export default function Page() {
   const [newName, setNewName] = useState("");
   const [bulkInput, setBulkInput] = useState("");
   const [generating, setGenerating] = useState(false);
-  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<DocType, Record<string, string>>>({
+    alrim: {},
+    gwanchal: {},
+  });
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const activityPlaceholder = useMemo(() => pickOne(ACTIVITY_EXAMPLES), []);
+  const alrimMemoPlaceholder = useMemo(() => pickOne(ALRIM_MEMO_EXAMPLES), []);
+  const gwanchalMemoPlaceholder = useMemo(() => pickOne(GWANCHAL_MEMO_EXAMPLES), []);
 
   useEffect(() => {
     try {
@@ -150,8 +185,9 @@ export default function Page() {
       return next;
     });
     setNotes((prev) => {
-      const next = { ...prev };
-      delete next[id];
+      const next = { alrim: { ...prev.alrim }, gwanchal: { ...prev.gwanchal } };
+      delete next.alrim[id];
+      delete next.gwanchal[id];
       return next;
     });
   }
@@ -170,7 +206,7 @@ export default function Page() {
     const fresh: Record<string, DailyEntry> = {};
     for (const c of children) fresh[c.id] = emptyEntry(c.id);
     setEntries(fresh);
-    setNotes({});
+    setNotes({ alrim: {}, gwanchal: {} });
   }
 
   async function generate() {
@@ -180,7 +216,7 @@ export default function Page() {
     }
     setError(null);
     setGenerating(true);
-    setNotes({});
+    setNotes((prev) => ({ ...prev, [docType]: {} }));
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -204,7 +240,7 @@ export default function Page() {
       const data: { notes: GeneratedNote[] } = await res.json();
       const map: Record<string, string> = {};
       for (const n of data.notes) map[n.childId] = n.text;
-      setNotes(map);
+      setNotes((prev) => ({ ...prev, [docType]: map }));
 
       // Persist to IndexedDB so monthly reports / export have the history
       const settings = loadSettings();
@@ -242,7 +278,7 @@ export default function Page() {
   }
 
   async function copy(childId: string) {
-    const text = notes[childId];
+    const text = notes[docType][childId];
     if (!text) return;
     await navigator.clipboard.writeText(text);
     setCopiedId(childId);
@@ -251,9 +287,10 @@ export default function Page() {
 
   async function copyAll() {
     if (children.length === 0) return;
+    const current = notes[docType];
     const lines = children
-      .filter((c) => notes[c.id])
-      .map((c) => `[${c.name}]\n${notes[c.id]}`)
+      .filter((c) => current[c.id])
+      .map((c) => `[${c.name}]\n${current[c.id]}`)
       .join("\n\n―――\n\n");
     if (!lines) return;
     await navigator.clipboard.writeText(lines);
@@ -408,7 +445,7 @@ export default function Page() {
           <textarea
             value={todayActivity}
             onChange={(e) => setTodayActivity(e.target.value)}
-            placeholder="예: 봄꽃 그리기 미술활동을 했고, 바깥놀이로 모래놀이를 했어요. 점심은 닭볶음탕."
+            placeholder={activityPlaceholder}
             rows={3}
             className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
           />
@@ -447,6 +484,11 @@ export default function Page() {
                   entry={entries[c.id] ?? emptyEntry(c.id)}
                   onChange={(patch) => updateEntry(c.id, patch)}
                   docType={docType}
+                  memoPlaceholder={
+                    docType === "gwanchal"
+                      ? gwanchalMemoPlaceholder
+                      : alrimMemoPlaceholder
+                  }
                 />
               ))}
             </div>
@@ -505,7 +547,7 @@ export default function Page() {
           )}
         </section>
 
-        {Object.keys(notes).length > 0 && (
+        {Object.keys(notes[docType]).length > 0 && (
           <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
             <StepHeader
               step={5}
@@ -523,7 +565,7 @@ export default function Page() {
             />
             <div className="grid gap-4 sm:grid-cols-2">
               {children.map((c) => {
-                const text = notes[c.id];
+                const text = notes[docType][c.id];
                 if (!text) return null;
                 return (
                   <div
@@ -543,7 +585,10 @@ export default function Page() {
                     <textarea
                       value={text}
                       onChange={(e) =>
-                        setNotes((prev) => ({ ...prev, [c.id]: e.target.value }))
+                        setNotes((prev) => ({
+                          ...prev,
+                          [docType]: { ...prev[docType], [c.id]: e.target.value },
+                        }))
                       }
                       rows={docType === "gwanchal" ? 12 : 6}
                       className="w-full text-sm leading-relaxed bg-transparent resize-none focus:outline-none text-ink-soft"
@@ -568,16 +613,16 @@ function ChildRow({
   entry,
   onChange,
   docType,
+  memoPlaceholder,
 }: {
   child: Child;
   entry: DailyEntry;
   onChange: (patch: Partial<DailyEntry>) => void;
   docType: DocType;
+  memoPlaceholder: string;
 }) {
   const isGwanchal = docType === "gwanchal";
-  const placeholder = isGwanchal
-    ? "오늘 관찰한 모습 (예: 블록으로 긴 다리를 만들고 친구와 함께 놀이 확장, 동화책 보고 질문 많이 함)"
-    : "특이사항 (예: 친구랑 블록놀이 즐겁게 함, 콧물 살짝 있음)";
+  const placeholder = memoPlaceholder;
   return (
     <div className="border border-warm-100 rounded-2xl p-3.5 bg-cream-50">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2.5">
