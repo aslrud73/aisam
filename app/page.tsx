@@ -235,14 +235,10 @@ export default function Page() {
 
   return (
     <main className="min-h-screen pb-24">
-      <header className="border-b border-stone-200 bg-cream/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-2xl text-stone-800">오늘알림장</h1>
-            <p className="text-xs text-stone-500 mt-0.5">
-              유치원·어린이집 선생님을 위한 AI 기록 자동화
-            </p>
-          </div>
+      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-6">
+        {/* Class name */}
+        <div className="flex items-center justify-between">
+          <h1 className="font-display text-xl text-stone-800">오늘 기록</h1>
           <div className="flex items-center gap-2 text-sm">
             <span className="text-stone-500">반 이름</span>
             <input
@@ -252,7 +248,7 @@ export default function Page() {
             />
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-5xl mx-auto px-5 pt-6 space-y-8">
         {/* Mode switcher */}
