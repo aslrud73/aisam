@@ -22,7 +22,7 @@ export function TopNav() {
             <Icon name="note" size={18} strokeWidth={1.8} />
           </span>
           <div className="leading-tight">
-            <div className="font-display text-[19px] text-ink group-hover:text-terracotta-600 transition">
+            <div className="text-[19px] font-extrabold text-ink group-hover:text-terracotta-600 transition tracking-tight">
               오늘알림장
             </div>
             <div className="text-[10.5px] text-ink-muted hidden sm:block -mt-0.5">

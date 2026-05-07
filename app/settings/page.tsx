@@ -189,7 +189,7 @@ export default function SettingsPage() {
       </details>
 
       {/* 프로바이더 선택 */}
-      <Step icon="sparkle" step={1} title="AI 프로바이더 선택">
+      <Step icon="sparkle" step={1} title="즐겨 사용하는 AI 모델 선택">
         <p className="text-sm text-ink-soft mb-3 leading-relaxed">
           어느 회사의 AI를 사용할지 골라 주세요. 처음이시라면{" "}
           <strong className="text-ink">Gemini (Google)</strong>가 무료 티어가
