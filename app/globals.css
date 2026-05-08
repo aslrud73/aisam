@@ -8,6 +8,34 @@
 :root {
   --bg: #FBF7F0;
   --ink: #2A2620;
+  /* 메인 페이지 모드별 강조색 (data-mode 속성으로 전환) */
+  --accent-50: #FCE8E5;
+  --accent-100: #F8C7BF;
+  --accent-300: #F58575;
+  --accent-400: #ED6E5F;
+  --accent-500: #E85A4F;
+  --accent-600: #C44639;
+  --accent-700: #9C3528;
+}
+
+[data-mode="alrim"] {
+  --accent-50: #FCE8E5;
+  --accent-100: #F8C7BF;
+  --accent-300: #F58575;
+  --accent-400: #ED6E5F;
+  --accent-500: #E85A4F;
+  --accent-600: #C44639;
+  --accent-700: #9C3528;
+}
+
+[data-mode="gwanchal"] {
+  --accent-50: #EFF3EE;
+  --accent-100: #DDE5DC;
+  --accent-300: #9BAF99;
+  --accent-400: #7A9479;
+  --accent-500: #637C62;
+  --accent-600: #4F634F;
+  --accent-700: #3E4F3E;
 }
 
 html, body {
