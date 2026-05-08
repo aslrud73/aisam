@@ -5,7 +5,7 @@ import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { fetchErrorMessage, friendlyError } from "./lib/errorMessage";
 import { SetupBanner } from "./components/SetupBanner";
 import { Icon, type IconName } from "./components/Icon";
-import { AlrimIllust, GwanchalIllust } from "./components/illustrations";
+import { AlrimIllust, GwanchalIllust, ClassIllust } from "./components/illustrations";
 import {
   saveDailyEntries,
   countKidEntries,
@@ -727,6 +727,7 @@ export default function Page() {
 
           {activeChildren.length === 0 && archivedChildren.length === 0 ? (
             <div className="text-center text-ink-muted text-sm">
+              <ClassIllust size={88} className="mx-auto mb-3" />
               <p className="font-display text-base text-ink-soft mb-1">
                 먼저 아이 이름을 추가하거나
               </p>
