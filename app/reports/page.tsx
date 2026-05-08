@@ -163,6 +163,7 @@ export default function ReportsPage() {
   const [copied, setCopied] = useState(false);
   const [openEntryId, setOpenEntryId] = useState<number | null>(null);
   const [historyVersion, setHistoryVersion] = useState(0);
+  const [showAllReports, setShowAllReports] = useState(false);
 
   useEffect(() => {
     listKidsWithEntries()
@@ -709,12 +710,48 @@ export default function ReportsPage() {
           )}
 
           <HistorySection
-            key={`growth-history-${historyVersion}`}
-            title="저장된 성장 리포트"
-            emptyMessage="아직 저장된 성장 리포트가 없어요. 위에서 리포트를 한 번 생성하면 이곳에 자동으로 쌓입니다."
+            key={`growth-history-${historyVersion}-${showAllReports ? "all" : selectedKidId ?? ""}`}
+            title={
+              showAllReports
+                ? "저장된 성장 리포트 (전체)"
+                : `${selectedKid?.kidName ?? "선택된 아이"} · 저장된 성장 리포트`
+            }
+            emptyMessage={
+              showAllReports
+                ? "아직 저장된 성장 리포트가 없어요. 위에서 리포트를 한 번 생성하면 이곳에 자동으로 쌓입니다."
+                : `${selectedKid?.kidName ?? "이 아이"}의 저장된 리포트가 아직 없어요. 위에서 리포트를 한 번 생성해 보세요. (전체 보기로 다른 아이 리포트를 볼 수 있어요.)`
+            }
+            headerRight={
+              <div className="inline-flex items-center rounded-lg border border-warm-200 bg-paper p-0.5 text-xs">
+                <button
+                  onClick={() => setShowAllReports(false)}
+                  aria-pressed={!showAllReports}
+                  className={`px-2.5 py-1 rounded-md transition ${
+                    !showAllReports
+                      ? "bg-terracotta-50 text-terracotta-700 font-medium"
+                      : "text-ink-muted hover:bg-warm-50"
+                  }`}
+                >
+                  이 아이만
+                </button>
+                <button
+                  onClick={() => setShowAllReports(true)}
+                  aria-pressed={showAllReports}
+                  className={`px-2.5 py-1 rounded-md transition ${
+                    showAllReports
+                      ? "bg-terracotta-50 text-terracotta-700 font-medium"
+                      : "text-ink-muted hover:bg-warm-50"
+                  }`}
+                >
+                  전체
+                </button>
+              </div>
+            }
             load={async () => {
               const rows: GrowthReportRecord[] = await listGrowthReports({
                 limit: 50,
+                kidId:
+                  showAllReports || !selectedKidId ? undefined : selectedKidId,
               });
               return rows
                 .filter(
@@ -740,6 +777,7 @@ export default function ReportsPage() {
             }}
             onDelete={async (id) => {
               await deleteGrowthReport(id);
+              setHistoryVersion((v) => v + 1);
             }}
           />
         </>

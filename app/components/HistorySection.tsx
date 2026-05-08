@@ -45,11 +45,13 @@ export function HistorySection({
   emptyMessage,
   load,
   onDelete,
+  headerRight,
 }: {
   title: string;
   emptyMessage: string;
   load: () => Promise<HistoryItem[]>;
   onDelete: (id: number) => Promise<void>;
+  headerRight?: React.ReactNode;
 }) {
   const [items, setItems] = useState<HistoryItem[] | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
@@ -82,18 +84,21 @@ export function HistorySection({
 
   return (
     <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <h2 className="text-base sm:text-lg font-semibold text-ink inline-flex items-center gap-2">
           <span className="text-terracotta-500">
             <Icon name="note" size={18} strokeWidth={1.7} />
           </span>
           {title}
         </h2>
-        {items && items.length > 0 && (
-          <span className="text-xs text-ink-muted tabular-nums">
-            최근 {items.length}건
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {headerRight}
+          {items && items.length > 0 && (
+            <span className="text-xs text-ink-muted tabular-nums">
+              최근 {items.length}건
+            </span>
+          )}
+        </div>
       </div>
 
       {items === null ? (
