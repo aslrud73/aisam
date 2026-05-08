@@ -40,6 +40,32 @@
   --accent-700: #3E4F3E;
 }
 
+/* HistorySection 등 공통 컴포넌트가 페이지마다 다른 톤을 따라가도록.
+   각 페이지 <main>에 data-page="..." 지정. */
+:root {
+  --page-accent-200: #EBBCA8;
+  --page-accent-500: #C56B4A;
+  --page-accent-700: #8C462C;
+}
+
+[data-page="parent"] {
+  --page-accent-200: #ECCB75;
+  --page-accent-500: #D4A537;
+  --page-accent-700: #8B6C22;
+}
+
+[data-page="play"] {
+  --page-accent-200: #B8AAD3;
+  --page-accent-500: #8B7BB5;
+  --page-accent-700: #5F538A;
+}
+
+[data-page="reports"] {
+  --page-accent-200: #8BA2BF;
+  --page-accent-500: #2D4A6B;
+  --page-accent-700: #1B3147;
+}
+
 html, body {
   background-color: var(--bg);
   color: var(--ink);

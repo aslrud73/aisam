@@ -86,7 +86,7 @@ export function HistorySection({
     <section className="bg-paper rounded-2xl p-6 shadow-card">
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <h2 className="text-base sm:text-lg font-semibold text-ink inline-flex items-center gap-2">
-          <span className="text-terracotta-500">
+          <span className="text-[var(--page-accent-500)]">
             <Icon name="note" size={18} strokeWidth={1.7} />
           </span>
           {title}
@@ -154,11 +154,11 @@ export function HistorySection({
                     {item.detail.map((s, i) => (
                       <div key={i}>
                         {s.label && (
-                          <div className="text-[11px] font-semibold text-terracotta-700 mb-1 tracking-wide">
+                          <div className="text-[11px] font-semibold text-[var(--page-accent-700)] mb-1 tracking-wide">
                             {s.label}
                           </div>
                         )}
-                        <p className="text-sm leading-relaxed text-ink-soft whitespace-pre-wrap bg-cream-100 border-l-2 border-terracotta-200 rounded-xl px-3 py-2">
+                        <p className="text-sm leading-relaxed text-ink-soft whitespace-pre-wrap bg-cream-100 border-l-2 border-[var(--page-accent-200)] rounded-xl px-3 py-2">
                           {s.text}
                         </p>
                       </div>
