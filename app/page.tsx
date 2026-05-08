@@ -755,7 +755,7 @@ export default function Page() {
                           }
                           className={`px-4 py-2 rounded-xl text-sm font-medium border transition shadow-sm leading-tight ${
                             selected
-                              ? "bg-sage-500 text-white border-sage-500 hover:bg-sage-600"
+                              ? "bg-[var(--accent-500)] text-white border-[var(--accent-500)] hover:bg-[var(--accent-600)]"
                               : "bg-paper text-ink-muted border-warm-200 hover:bg-warm-50 hover:border-warm-300"
                           }`}
                         >
