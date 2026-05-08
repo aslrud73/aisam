@@ -1130,7 +1130,7 @@ export default function Page() {
               }
             />
             <div className="grid gap-4 sm:grid-cols-2">
-              {children.map((c) => {
+              {displayChildren.map((c) => {
                 const text = notes[docType][c.id];
                 if (!text) return null;
                 return (
@@ -1264,7 +1264,9 @@ function ChildRow({
   const isGwanchal = docType === "gwanchal";
   const isAnon = child.id === ANONYMOUS_KID_ID;
   const placeholder = isAnon
-    ? "추가 안내 (선택, 예: 내일 우천 시 실내 활동)"
+    ? isGwanchal
+      ? "추가 메모 (선택, 예: 일부 아이들이 '과채류' 단어를 처음 접해서 단어 설명이 필요했음)"
+      : "추가 안내 (선택, 예: 내일 도시락 잊지 말고 챙겨 주세요)"
     : memoPlaceholder;
   return (
     <div className="rounded-2xl p-3.5 bg-cream-50">
@@ -1297,7 +1299,9 @@ function ChildRow({
         )}
         {isAnon && (
           <span className="text-xs text-ink-muted">
-            공통 알림장 — 특정 아이 이름 없이 일반 안내문으로 작성됩니다
+            {isGwanchal
+              ? "공통 관찰일지 — 반 전체에 대한 일반 관찰 메모"
+              : "공통 알림장 — 특정 아이 이름 없이 일반 안내문으로 작성됩니다"}
           </span>
         )}
       </div>
