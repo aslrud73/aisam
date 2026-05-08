@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>쌤노트 — 교사+노트 로고 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg-cream: #FBF7F0;
+    --bg-warm: #F5EFE3;
+    --card-white: #FFFFFF;
+    --text-primary: #2C2420;
+    --text-secondary: #6B5D52;
+    --text-tertiary: #9A8C81;
+    --accent-coral: #E85A4F;
+    --accent-coral-light: #F58575;
+    --accent-coral-bg: #FCE8E5;
+    --accent-sage: #5B8A6F;
+    --accent-mustard: #D4A537;
+    --accent-mustard-bg: #FBF1D8;
+    --accent-lavender: #8B7BB5;
+    --accent-navy: #2D4A6B;
+    --border-light: #EFE8DC;
+    --border-medium: #DCD2C2;
+    --shadow-sm: 0 1px 2px rgba(44, 36, 32, 0.04);
+    --shadow-md: 0 2px 8px rgba(44, 36, 32, 0.08);
+    --shadow-lg: 0 8px 24px rgba(44, 36, 32, 0.10);
+    --shadow-coral: 0 4px 14px rgba(232, 90, 79, 0.25);
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Pretendard', sans-serif;
+    background: var(--bg-cream);
+    color: var(--text-primary);
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--bg-warm) 0%, var(--accent-coral-bg) 100%);
+    border-radius: 1.5rem;
+    border: 1px solid var(--border-light);
+  }
+  
+  .header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    margin-bottom: 0.5rem;
+  }
+  
+  .header h1 .accent {
+    color: var(--accent-coral);
+  }
+  
+  .header p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  
+  .header-note {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.6);
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: inline-block;
+  }
+  
+  /* 로고 카드 */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  
+  @media (max-width: 768px) {
+    .logo-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  }
+  
+  .logo-card {
+    background: var(--card-white);
+    border: 1px solid var(--border-light);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+  
+  .logo-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  .logo-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--accent-coral-bg);
+    color: var(--accent-coral);
+    letter-spacing: 0.02em;
+    margin-bottom: 1rem;
+  }
+  
+  .logo-card h3 {
+    font-size: 1.375rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+  
+  .logo-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* 로고 디스플레이 */
+  .logo-showcase {
+    background: var(--bg-cream);
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .size-group {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .size-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .size-label-text {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  /* 큰 로고 (80px) */
+  .logo-large {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent-coral) 0%, var(--accent-coral-light) 100%);
+    border-radius: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-coral);
+  }
+  
+  /* 중간 로고 (헤더용) */
+  .logo-medium {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-light);
+  }
+  
+  .logo-medium-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent-coral) 0%, var(--accent-coral-light) 100%);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-coral);
+  }
+  
+  .logo-medium-name {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
+  
+  .logo-medium-sub {
+    font-size: 0.625rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  
+  /* 작은 로고 (24px) */
+  .logo-small {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--accent-coral) 0%, var(--accent-coral-light) 100%);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* 평가 */
+  .eval-section h4 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 0.625rem;
+  }
+  
+  .eval-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed var(--border-light);
+    font-size: 0.875rem;
+  }
+  
+  .eval-row:last-child { border-bottom: none; }
+  
+  .eval-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  
+  .eval-stars {
+    color: var(--accent-mustard);
+    letter-spacing: -2px;
+  }
+  
+  .eval-stars-empty {
+    color: var(--border-medium);
+  }
+  
+  /* 비교표 */
+  .comparison-section {
+    background: var(--card-white);
+    border: 1px solid var(--border-light);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+  }
+  
+  .comparison-section h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+  
+  .comparison-section .desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+  
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  
+  .compare-table th {
+    text-align: left;
+    padding: 0.75rem;
+    background: var(--bg-warm);
+    font-weight: 700;
+    border-bottom: 2px solid var(--border-medium);
+  }
+  
+  .compare-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-secondary);
+  }
+  
+  .compare-table .label-cell {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  
+  .recommendation-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--accent-coral-bg);
+    border-left: 4px solid var(--accent-coral);
+    border-radius: 0.5rem;
+  }
+  
+  .recommendation-box .label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--accent-coral);
+    margin-bottom: 0.25rem;
+  }
+  
+  .recommendation-box .text {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <header class="header">
+    <h1>쌤<span class="accent">노트</span> 교사+노트 로고</h1>
+    <p>4가지 표현 방향 · 교사 정체성 + 노트 도구</p>
+    <div class="header-note">
+      💡 <strong>"쌤노트" 이름과 시각이 일치</strong> · 일러스트와 차별화된 로고
+    </div>
+  </header>
+
+  <div class="logo-grid">
+    
+    <!-- ========== A: 정면형 ========== -->
+    <div class="logo-card">
+      <span class="logo-tag">방향 A</span>
+      <h3>정면형</h3>
+      <div class="logo-subtitle">노트를 들고 정면을 보는 모습 · 정직, 명확</div>
+      
+      <div class="logo-showcase">
+        <div class="size-group">
+          <!-- 80px -->
+          <div class="size-label">
+            <div class="logo-large">
+              <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                <!-- 머리 -->
+                <circle cx="32" cy="18" r="8" fill="white"/>
+                <!-- 몸통 (어깨 + 가슴) -->
+                <path d="M18 38 Q18 28 32 28 Q46 28 46 38 L46 50 L18 50 Z" fill="white"/>
+                <!-- 노트 (양손에 들고 있음) -->
+                <rect x="22" y="36" width="20" height="14" rx="1.5" fill="#FBF7F0" stroke="#E85A4F" stroke-width="1.5"/>
+                <line x1="25" y1="40" x2="39" y2="40" stroke="#E85A4F" stroke-width="1" opacity="0.6"/>
+                <line x1="25" y1="43" x2="36" y2="43" stroke="#E85A4F" stroke-width="1" opacity="0.6"/>
+                <line x1="25" y1="46" x2="38" y2="46" stroke="#E85A4F" stroke-width="1" opacity="0.6"/>
+              </svg>
+            </div>
+            <span class="size-label-text">앱 아이콘 80px</span>
+          </div>
+          
+          <!-- 36px (헤더) -->
+          <div class="size-label">
+            <div class="logo-medium">
+              <div class="logo-medium-icon">
+                <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
+                  <circle cx="32" cy="18" r="8" fill="white"/>
+                  <path d="M18 38 Q18 28 32 28 Q46 28 46 38 L46 50 L18 50 Z" fill="white"/>
+                  <rect x="22" y="36" width="20" height="14" rx="1.5" fill="#FBF7F0" stroke="#E85A4F" stroke-width="2"/>
+                  <line x1="25" y1="41" x2="39" y2="41" stroke="#E85A4F" stroke-width="1.5" opacity="0.6"/>
+                  <line x1="25" y1="45" x2="36" y2="45" stroke="#E85A4F" stroke-width="1.5" opacity="0.6"/>
+                </svg>
+              </div>
+              <div>
+                <div class="logo-medium-name">쌤노트</div>
+                <div class="logo-medium-sub">선생님의 1시간을 돌려드립니다</div>
+              </div>
+            </div>
+            <span class="size-label-text">앱 헤더 36px</span>
+          </div>
+          
+          <!-- 작은 사이즈 -->
+          <div class="size-label">
+            <div class="logo-small">
+              <svg width="18" height="18" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="20" r="10" fill="white"/>
+                <path d="M16 40 Q16 30 32 30 Q48 30 48 40 L48 56 L16 56 Z" fill="white"/>
+                <rect x="22" y="40" width="20" height="14" rx="2" fill="#E85A4F" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <span class="size-label-text">파비콘 28px</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="eval-section">
+        <h4>평가</h4>
+        <div class="eval-row">
+          <span class="eval-label">교사 정체성</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">노트 가시성</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">친근감</span>
+          <span class="eval-stars">★★★<span class="eval-stars-empty">★★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">작은 사이즈 가독성</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">일러스트와 차별화</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== B: 측면 액션형 ========== -->
+    <div class="logo-card">
+      <span class="logo-tag">방향 B</span>
+      <h3>측면 액션형</h3>
+      <div class="logo-subtitle">노트에 글을 쓰는 모습 · 동적, 일하는 교사</div>
+      
+      <div class="logo-showcase">
+        <div class="size-group">
+          <!-- 80px -->
+          <div class="size-label">
+            <div class="logo-large">
+              <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                <!-- 머리 (옆모습) -->
+                <circle cx="22" cy="20" r="7" fill="white"/>
+                <!-- 몸통 (앉아서 글 쓰는 자세) -->
+                <path d="M14 38 Q14 30 22 30 Q30 30 32 36 L34 50 L14 50 Z" fill="white"/>
+                <!-- 팔 (글 쓰는 동작) -->
+                <path d="M28 36 L42 38 L48 32" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+                <!-- 노트 (앞에 펼쳐져 있음) -->
+                <rect x="34" y="38" width="22" height="14" rx="1.5" fill="#FBF7F0" stroke="#E85A4F" stroke-width="1.5"/>
+                <line x1="37" y1="42" x2="52" y2="42" stroke="#E85A4F" stroke-width="1" opacity="0.6"/>
+                <line x1="37" y1="45" x2="49" y2="45" stroke="#E85A4F" stroke-width="1" opacity="0.6"/>
+                <line x1="37" y1="48" x2="51" y2="48" stroke="#E85A4F" stroke-width="1" opacity="0.6"/>
+                <!-- 펜 -->
+                <line x1="48" y1="32" x2="50" y2="36" stroke="#D4A537" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="size-label-text">앱 아이콘 80px</span>
+          </div>
+          
+          <div class="size-label">
+            <div class="logo-medium">
+              <div class="logo-medium-icon">
+                <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
+                  <circle cx="22" cy="20" r="7" fill="white"/>
+                  <path d="M14 38 Q14 30 22 30 Q30 30 32 36 L34 50 L14 50 Z" fill="white"/>
+                  <path d="M28 36 L42 38 L48 32" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+                  <rect x="34" y="38" width="22" height="14" rx="1.5" fill="#FBF7F0" stroke="#E85A4F" stroke-width="2"/>
+                  <line x1="48" y1="32" x2="50" y2="36" stroke="#D4A537" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="logo-medium-name">쌤노트</div>
+                <div class="logo-medium-sub">선생님의 1시간을 돌려드립니다</div>
+              </div>
+            </div>
+            <span class="size-label-text">앱 헤더 36px</span>
+          </div>
+          
+          <div class="size-label">
+            <div class="logo-small">
+              <svg width="18" height="18" viewBox="0 0 64 64" fill="none">
+                <circle cx="22" cy="22" r="10" fill="white"/>
+                <path d="M10 42 Q10 32 22 32 Q34 32 36 42 L36 56 L10 56 Z" fill="white"/>
+                <rect x="32" y="40" width="22" height="14" rx="2" fill="#E85A4F" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <span class="size-label-text">파비콘 28px</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="eval-section">
+        <h4>평가</h4>
+        <div class="eval-row">
+          <span class="eval-label">교사 정체성</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">노트 가시성</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">친근감</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">작은 사이즈 가독성</span>
+          <span class="eval-stars">★★<span class="eval-stars-empty">★★★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">일러스트와 차별화</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== C: 안고 있는 형 ========== -->
+    <div class="logo-card">
+      <span class="logo-tag">방향 C</span>
+      <h3>안고 있는 형</h3>
+      <div class="logo-subtitle">노트를 가슴에 안고 있는 모습 · 따뜻, 보호적</div>
+      
+      <div class="logo-showcase">
+        <div class="size-group">
+          <div class="size-label">
+            <div class="logo-large">
+              <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                <!-- 머리 -->
+                <circle cx="32" cy="16" r="8" fill="white"/>
+                <!-- 몸통 -->
+                <path d="M18 34 Q18 26 32 26 Q46 26 46 34 L46 52 L18 52 Z" fill="white"/>
+                <!-- 노트 (가슴에 안고 있음, 살짝 기울어짐) -->
+                <rect x="20" y="32" width="24" height="16" rx="2" fill="#FBF1D8" stroke="#E85A4F" stroke-width="1.5" transform="rotate(-3 32 40)"/>
+                <line x1="24" y1="36" x2="40" y2="36" stroke="#E85A4F" stroke-width="1" opacity="0.7" transform="rotate(-3 32 40)"/>
+                <line x1="24" y1="40" x2="38" y2="40" stroke="#E85A4F" stroke-width="1" opacity="0.7" transform="rotate(-3 32 40)"/>
+                <line x1="24" y1="44" x2="39" y2="44" stroke="#E85A4F" stroke-width="1" opacity="0.7" transform="rotate(-3 32 40)"/>
+                <!-- 하트 (살짝 떠있는 작은 하트) -->
+                <path d="M48 22 Q46 20 44 22 Q42 20 40 22 Q40 25 44 28 Q48 25 48 22 Z" fill="#D4A537" opacity="0.8"/>
+              </svg>
+            </div>
+            <span class="size-label-text">앱 아이콘 80px</span>
+          </div>
+          
+          <div class="size-label">
+            <div class="logo-medium">
+              <div class="logo-medium-icon">
+                <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
+                  <circle cx="32" cy="16" r="8" fill="white"/>
+                  <path d="M18 34 Q18 26 32 26 Q46 26 46 34 L46 52 L18 52 Z" fill="white"/>
+                  <rect x="20" y="32" width="24" height="16" rx="2" fill="#FBF1D8" stroke="#E85A4F" stroke-width="2" transform="rotate(-3 32 40)"/>
+                  <path d="M48 22 Q46 20 44 22 Q42 20 40 22 Q40 25 44 28 Q48 25 48 22 Z" fill="#D4A537"/>
+                </svg>
+              </div>
+              <div>
+                <div class="logo-medium-name">쌤노트</div>
+                <div class="logo-medium-sub">선생님의 1시간을 돌려드립니다</div>
+              </div>
+            </div>
+            <span class="size-label-text">앱 헤더 36px</span>
+          </div>
+          
+          <div class="size-label">
+            <div class="logo-small">
+              <svg width="18" height="18" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="18" r="10" fill="white"/>
+                <path d="M16 38 Q16 28 32 28 Q48 28 48 38 L48 56 L16 56 Z" fill="white"/>
+                <rect x="20" y="34" width="24" height="16" rx="2" fill="#E85A4F" stroke="white" stroke-width="2" transform="rotate(-3 32 42)"/>
+              </svg>
+            </div>
+            <span class="size-label-text">파비콘 28px</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="eval-section">
+        <h4>평가</h4>
+        <div class="eval-row">
+          <span class="eval-label">교사 정체성</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">노트 가시성</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">친근감</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">작은 사이즈 가독성</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">일러스트와 차별화</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== D: 미니멀형 ========== -->
+    <div class="logo-card">
+      <span class="logo-tag">방향 D</span>
+      <h3>미니멀형</h3>
+      <div class="logo-subtitle">노트 위에 사람 얼굴만 살짝 · 모던, 단순</div>
+      
+      <div class="logo-showcase">
+        <div class="size-group">
+          <div class="size-label">
+            <div class="logo-large">
+              <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                <!-- 노트 (메인) -->
+                <rect x="14" y="22" width="36" height="38" rx="3" fill="white"/>
+                <!-- 노트 라인 -->
+                <line x1="20" y1="38" x2="44" y2="38" stroke="#E85A4F" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="20" y1="44" x2="40" y2="44" stroke="#E85A4F" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+                <line x1="20" y1="50" x2="42" y2="50" stroke="#E85A4F" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+                <line x1="20" y1="56" x2="38" y2="56" stroke="#E85A4F" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+                <!-- 사람 얼굴 (노트 위에서 살짝 보임) -->
+                <circle cx="32" cy="18" r="10" fill="white"/>
+                <!-- 얼굴 표정 (간단히) -->
+                <circle cx="29" cy="17" r="1" fill="#2C2420"/>
+                <circle cx="35" cy="17" r="1" fill="#2C2420"/>
+                <path d="M29 21 Q32 23 35 21" stroke="#2C2420" stroke-width="1" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="size-label-text">앱 아이콘 80px</span>
+          </div>
+          
+          <div class="size-label">
+            <div class="logo-medium">
+              <div class="logo-medium-icon">
+                <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
+                  <rect x="14" y="22" width="36" height="38" rx="3" fill="white"/>
+                  <line x1="20" y1="38" x2="44" y2="38" stroke="#E85A4F" stroke-width="2"/>
+                  <line x1="20" y1="44" x2="40" y2="44" stroke="#E85A4F" stroke-width="2" opacity="0.6"/>
+                  <line x1="20" y1="50" x2="42" y2="50" stroke="#E85A4F" stroke-width="2" opacity="0.6"/>
+                  <circle cx="32" cy="18" r="10" fill="white"/>
+                  <circle cx="29" cy="17" r="1.2" fill="#2C2420"/>
+                  <circle cx="35" cy="17" r="1.2" fill="#2C2420"/>
+                  <path d="M29 21 Q32 23 35 21" stroke="#2C2420" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="logo-medium-name">쌤노트</div>
+                <div class="logo-medium-sub">선생님의 1시간을 돌려드립니다</div>
+              </div>
+            </div>
+            <span class="size-label-text">앱 헤더 36px</span>
+          </div>
+          
+          <div class="size-label">
+            <div class="logo-small">
+              <svg width="18" height="18" viewBox="0 0 64 64" fill="none">
+                <rect x="12" y="24" width="40" height="36" rx="3" fill="white"/>
+                <line x1="20" y1="40" x2="44" y2="40" stroke="#E85A4F" stroke-width="3"/>
+                <line x1="20" y1="48" x2="40" y2="48" stroke="#E85A4F" stroke-width="3" opacity="0.6"/>
+                <circle cx="32" cy="20" r="12" fill="white"/>
+              </svg>
+            </div>
+            <span class="size-label-text">파비콘 28px</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="eval-section">
+        <h4>평가</h4>
+        <div class="eval-row">
+          <span class="eval-label">교사 정체성</span>
+          <span class="eval-stars">★★★<span class="eval-stars-empty">★★</span></span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">노트 가시성</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">친근감</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">작은 사이즈 가독성</span>
+          <span class="eval-stars">★★★★★</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">일러스트와 차별화</span>
+          <span class="eval-stars">★★★★<span class="eval-stars-empty">★</span></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 비교표 -->
+  <section class="comparison-section">
+    <h2>4가지 방향 종합 비교</h2>
+    <p class="desc">"교사+노트" 컨셉의 4가지 표현을 객관적으로 비교합니다.</p>
+    
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>기준</th>
+          <th>A 정면</th>
+          <th>B 측면 액션</th>
+          <th>C 안고 있는</th>
+          <th>D 미니멀</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label-cell">첫인상</td>
+          <td>정직, 공식</td>
+          <td>일하는 모습</td>
+          <td>따뜻함, 보호</td>
+          <td>모던, 깔끔</td>
+        </tr>
+        <tr>
+          <td class="label-cell">교사 정체성</td>
+          <td>매우 강함</td>
+          <td>강함</td>
+          <td>강함</td>
+          <td>중간</td>
+        </tr>
+        <tr>
+          <td class="label-cell">노트 강조</td>
+          <td>중간</td>
+          <td>강함</td>
+          <td>강함</td>
+          <td>매우 강함</td>
+        </tr>
+        <tr>
+          <td class="label-cell">친근감</td>
+          <td>중간</td>
+          <td>좋음</td>
+          <td>매우 좋음</td>
+          <td>매우 좋음</td>
+        </tr>
+        <tr>
+          <td class="label-cell">작은 사이즈</td>
+          <td>유지됨</td>
+          <td>복잡함</td>
+          <td>유지됨</td>
+          <td>완벽</td>
+        </tr>
+        <tr>
+          <td class="label-cell">상업화 인상</td>
+          <td>전문</td>
+          <td>전문 + 활동</td>
+          <td>친근 + 신뢰</td>
+          <td>모던 SaaS</td>
+        </tr>
+        <tr>
+          <td class="label-cell">한국 어린이집 정서</td>
+          <td>중간</td>
+          <td>좋음</td>
+          <td>매우 좋음</td>
+          <td>좋음</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div class="recommendation-box">
+      <div class="label">제 추천</div>
+      <div class="text">
+        <strong>방향 C (안고 있는 형)</strong>를 추천합니다. 
+        "노트를 소중히 다루는 교사"의 모습이 본인 앱의 가치(아이의 일상을 정성껏 기록)와 일치하기 때문입니다. 
+        하트 액센트가 따뜻함을 더하고, 한국 어린이집 정서에도 잘 맞습니다.
+        <br><br>
+        <strong>모던한 인상이 우선</strong>이라면 <strong>방향 D (미니멀)</strong>가 가장 깔끔하고, 
+        모든 사이즈에서 완벽하게 작동합니다. 노션 같은 전문 SaaS 인상을 줍니다.
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
