@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
+import { fetchErrorMessage, friendlyError } from "../lib/errorMessage";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
 import { ParentIllust } from "../components/illustrations";
@@ -78,7 +79,7 @@ export default function ParentPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `요청 실패 (${res.status})`);
+        throw new Error(body.error ?? fetchErrorMessage(res.status));
       }
       const data: { draft: string } = await res.json();
       setDraft(data.draft ?? "");
@@ -99,7 +100,7 @@ export default function ParentPage() {
         .then(() => setHistoryVersion((v) => v + 1))
         .catch(() => {});
     } catch (e) {
-      setError(e instanceof Error ? e.message : "알 수 없는 오류");
+      setError(friendlyError(e));
     } finally {
       setGenerating(false);
     }

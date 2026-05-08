@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
+import { fetchErrorMessage, friendlyError } from "../lib/errorMessage";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
 import { ReportIllust } from "../components/illustrations";
@@ -252,7 +253,7 @@ export default function ReportsPage() {
       setOpenEntryId((curr) => (curr === id ? null : curr));
       await refreshEntries();
     } catch (e) {
-      alert(`삭제하지 못했어요: ${e instanceof Error ? e.message : "알 수 없는 오류"}`);
+      alert(`삭제에 문제가 생겼어요 — ${friendlyError(e)}`);
     }
   }
 
@@ -282,7 +283,7 @@ export default function ReportsPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `요청 실패 (${res.status})`);
+        throw new Error(body.error ?? fetchErrorMessage(res.status));
       }
       const data: { report: Report } = await res.json();
       setReport(data.report);
@@ -305,7 +306,7 @@ export default function ReportsPage() {
           // Don't surface DB errors — generation already succeeded.
         });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "알 수 없는 오류");
+      setError(friendlyError(e));
     } finally {
       setGenerating(false);
     }

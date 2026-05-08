@@ -119,6 +119,19 @@ export function DataSection() {
         </p>
       </div>
 
+      <div className="bg-terracotta-50 border-l-4 border-terracotta-300 rounded-r-xl p-3.5 text-sm text-ink-soft leading-relaxed">
+        <p className="font-semibold text-terracotta-700 mb-1">
+          ⚠️ 주기적 백업을 권장드려요
+        </p>
+        <p>
+          데이터가 이 기기 브라우저에만 저장돼요. 브라우저 캐시를 지우거나
+          기기에 문제가 생기면 누적 기록이 한 번에 사라질 수 있어요.{" "}
+          <strong>한 달에 한 번 정도</strong> 아래{" "}
+          <strong>전체 내보내기 (.json)</strong>로 백업 파일을 만들어 두면
+          안심돼요. 새 기기로 옮길 때도 이 파일이 필요해요.
+        </p>
+      </div>
+
       {counts && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center bg-cream-100 rounded-2xl p-4 ">
           <div>

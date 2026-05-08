@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
+import { fetchErrorMessage, friendlyError } from "../lib/errorMessage";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
 import { PlayIllust } from "../components/illustrations";
@@ -164,7 +165,7 @@ export default function PlayPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `요청 실패 (${res.status})`);
+        throw new Error(body.error ?? fetchErrorMessage(res.status));
       }
       const data: { journal: PlayJournal } = await res.json();
       setJournal(data.journal);
@@ -184,7 +185,7 @@ export default function PlayPage() {
         .then(() => setHistoryVersion((v) => v + 1))
         .catch(() => {});
     } catch (e) {
-      setError(e instanceof Error ? e.message : "알 수 없는 오류");
+      setError(friendlyError(e));
     } finally {
       setGenerating(false);
     }

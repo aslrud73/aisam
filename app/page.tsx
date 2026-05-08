@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthHeaders, loadSettings } from "./lib/settings";
+import { fetchErrorMessage, friendlyError } from "./lib/errorMessage";
 import { SetupBanner } from "./components/SetupBanner";
 import { Icon, type IconName } from "./components/Icon";
 import { AlrimIllust, GwanchalIllust } from "./components/illustrations";
@@ -498,7 +499,7 @@ export default function Page() {
       }
       alert(lines.join("\n"));
     } catch (e) {
-      alert(`가져오기 실패: ${e instanceof Error ? e.message : "알 수 없는 오류"}`);
+      alert(`가져오기 실패 — ${friendlyError(e)}`);
     }
   }
 
@@ -570,7 +571,7 @@ export default function Page() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `요청 실패 (${res.status})`);
+        throw new Error(body.error ?? fetchErrorMessage(res.status));
       }
       const data: { notes: GeneratedNote[] } = await res.json();
       const map: Record<string, string> = {};
@@ -608,7 +609,7 @@ export default function Page() {
           // Don't surface DB errors — generation already succeeded.
         });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "알 수 없는 오류");
+      setError(friendlyError(e));
     } finally {
       setGenerating(false);
     }
