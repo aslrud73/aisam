@@ -550,10 +550,10 @@ export default function ReportsPage() {
                                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted mb-0.5 tabular-nums">
                                     <span>{formatDate(e.date)}</span>
                                     <span
-                                      className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10.5px] ${
+                                      className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10.5px] font-medium ${
                                         e.docType === "gwanchal"
-                                          ? "bg-sage-50 border-sage-100 text-sage-700"
-                                          : "bg-coral-50 border-coral-100 text-coral-700"
+                                          ? "bg-sage-100 border-sage-300 text-sage-700"
+                                          : "bg-coral-100 border-coral-300 text-coral-700"
                                       }`}
                                     >
                                       {e.docType === "gwanchal" ? "관찰일지" : "알림장"}
