@@ -582,22 +582,22 @@ export default function ReportsPage() {
                                 {(e.meal || e.mood || e.nap || e.memo) && (
                                   <div className="flex flex-wrap gap-1.5 text-[11px] text-ink-muted">
                                     {e.meal && (
-                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
+                                      <span className="px-2 py-0.5 rounded-lg bg-[var(--page-accent-50)] ">
                                         식사 · {e.meal}
                                       </span>
                                     )}
                                     {e.mood && (
-                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
+                                      <span className="px-2 py-0.5 rounded-lg bg-[var(--page-accent-50)] ">
                                         기분 · {e.mood}
                                       </span>
                                     )}
                                     {e.nap && (
-                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
+                                      <span className="px-2 py-0.5 rounded-lg bg-[var(--page-accent-50)] ">
                                         낮잠 · {e.nap}
                                       </span>
                                     )}
                                     {e.memo && (
-                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
+                                      <span className="px-2 py-0.5 rounded-lg bg-[var(--page-accent-50)] ">
                                         메모 · {e.memo}
                                       </span>
                                     )}
