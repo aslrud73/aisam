@@ -387,10 +387,70 @@ export async function importAll(
     return rest;
   };
 
-  const dailyEntries = (b.dbContent?.dailyEntries ?? []).map(cleanRecord);
+  // === 명단 매칭 (merge 모드) ===
+  // 같은 이름의 아이는 현재 기기 kidId로 매핑되어, import한 기록이
+  // 현재 기기 아이에 누적된다. 새 이름은 명단에 추가되고 id 그대로 유지.
+  // (별쫑/민경 시나리오: PC ↔ 스마트폰 양방향 수동 동기화 지원)
+  const idMap = new Map<string, string>();
+
+  if (mode === "merge" && b.localState?.notification) {
+    try {
+      const importedState = JSON.parse(b.localState.notification) as {
+        children?: { id: string; name: string }[];
+      };
+      const importedChildren = importedState.children ?? [];
+
+      const currentRaw = localStorage.getItem(NOTIFICATION_KEY);
+      const currentState = currentRaw
+        ? (JSON.parse(currentRaw) as {
+            children?: { id: string; name: string }[];
+          })
+        : null;
+      const currentChildren = currentState?.children ?? [];
+
+      const currentByName = new Map(
+        currentChildren.map((c) => [c.name.trim(), c.id]),
+      );
+
+      const mergedChildren = [...currentChildren];
+
+      for (const imp of importedChildren) {
+        const matchedId = currentByName.get(imp.name.trim());
+        if (matchedId) {
+          // 이름 동일 → 현재 기기 id로 매핑 (기록 통합)
+          idMap.set(imp.id, matchedId);
+        } else {
+          // 새 이름 → 명단에 추가, id 그대로
+          idMap.set(imp.id, imp.id);
+          mergedChildren.push({ id: imp.id, name: imp.name });
+        }
+      }
+
+      // 합친 명단 저장. 다른 필드(className, todayActivity, entries 등)는
+      // 현재 기기 우선 — 작성 중인 임시 입력을 보존하기 위해.
+      const baseState = currentState ?? importedState;
+      const merged = { ...baseState, children: mergedChildren };
+      localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(merged));
+    } catch {
+      // 파싱 실패 시 매핑 없이 진행 (기존 동작과 동일하게 fallback)
+    }
+  }
+
+  const remapKid = <T extends { kidId?: string }>(r: T): T => {
+    if (r.kidId && idMap.has(r.kidId)) {
+      return { ...r, kidId: idMap.get(r.kidId)! };
+    }
+    return r;
+  };
+
+  const dailyEntries = (b.dbContent?.dailyEntries ?? [])
+    .map(cleanRecord)
+    .map(remapKid);
   const parentReplies = (b.dbContent?.parentReplies ?? []).map(cleanRecord);
   const playJournals = (b.dbContent?.playJournals ?? []).map(cleanRecord);
-  const growthReports = (b.dbContent?.growthReports ?? []).map(cleanRecord);
+  const growthReports = (b.dbContent?.growthReports ?? [])
+    .map(cleanRecord)
+    .map(remapKid);
 
   await db.transaction(
     "rw",
