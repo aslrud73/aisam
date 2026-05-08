@@ -21,6 +21,7 @@
 [data-mode="alrim"] {
   --accent-50: #FCE8E5;
   --accent-100: #F8C7BF;
+  --accent-200: #F09D8F;
   --accent-300: #F58575;
   --accent-400: #ED6E5F;
   --accent-500: #E85A4F;
@@ -31,6 +32,7 @@
 [data-mode="gwanchal"] {
   --accent-50: #EFF3EE;
   --accent-100: #DDE5DC;
+  --accent-200: #BCCABA;
   --accent-300: #9BAF99;
   --accent-400: #7A9479;
   --accent-500: #637C62;

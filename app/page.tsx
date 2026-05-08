@@ -1045,7 +1045,7 @@ export default function Page() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={copyAll}
-                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-[var(--accent-100)] hover:bg-[var(--accent-200)] text-[var(--accent-700)] rounded-xl font-medium"
                   >
                     <Icon name="copy" size={14} strokeWidth={1.8} />
                     {copiedId === "ALL" ? "전체 복사됨" : "전체 복사"}
@@ -1070,7 +1070,7 @@ export default function Page() {
                 return (
                   <div
                     key={c.id}
-                    className="rounded-2xl p-4 bg-cream-100 border-l-2 border-[var(--accent-300)]"
+                    className="rounded-2xl p-4 bg-[var(--accent-50)] border-l-2 border-[var(--accent-300)]"
                   >
                     <div className="flex items-baseline justify-between mb-2">
                       <h3 className="font-semibold text-ink">{c.name}</h3>
