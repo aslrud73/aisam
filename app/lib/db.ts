@@ -193,6 +193,53 @@ export async function countKidEntries(kidId: string): Promise<number> {
   return getDb().dailyEntries.where("kidId").equals(kidId).count();
 }
 
+/**
+ * Rename a child everywhere kidName is denormalized so reports and history
+ * lists pick up the new name. The kidId stays the same so existing records
+ * remain linked to this child.
+ */
+export async function renameKid(kidId: string, newName: string): Promise<void> {
+  const trimmed = newName.trim();
+  if (!trimmed) throw new Error("이름은 비울 수 없어요.");
+  const db = getDb();
+  await db.transaction("rw", [db.dailyEntries, db.growthReports], async () => {
+    await db.dailyEntries
+      .where("kidId")
+      .equals(kidId)
+      .modify({ kidName: trimmed });
+    await db.growthReports
+      .where("kidId")
+      .equals(kidId)
+      .modify({ kidName: trimmed });
+  });
+}
+
+export interface KidLastActivity {
+  kidId: string;
+  lastDate: string;
+  count: number;
+}
+
+/**
+ * Returns the most recent dailyEntry date and total entry count for every
+ * kidId that has at least one record. Used to surface "마지막 기록일" hints
+ * on the roster.
+ */
+export async function getLastActivityByKid(): Promise<Map<string, KidLastActivity>> {
+  const all = await getDb().dailyEntries.toArray();
+  const map = new Map<string, KidLastActivity>();
+  for (const e of all) {
+    const existing = map.get(e.kidId);
+    if (!existing) {
+      map.set(e.kidId, { kidId: e.kidId, lastDate: e.date, count: 1 });
+    } else {
+      existing.count += 1;
+      if (e.date > existing.lastDate) existing.lastDate = e.date;
+    }
+  }
+  return map;
+}
+
 export interface KidSummary {
   kidId: string;
   kidName: string;

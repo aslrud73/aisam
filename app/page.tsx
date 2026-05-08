@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { SetupBanner } from "./components/SetupBanner";
 import { Icon, type IconName } from "./components/Icon";
 import {
   saveDailyEntries,
   countKidEntries,
+  renameKid,
+  getLastActivityByKid,
   todayISO,
   type DailyEntryRecord,
+  type KidLastActivity,
 } from "./lib/db";
 
 const ACTIVITY_EXAMPLES = [
@@ -67,6 +70,21 @@ type NapStatus = "푹잠" | "뒤척임" | "안잠" | "";
 interface Child {
   id: string;
   name: string;
+  archived?: boolean;
+}
+
+function formatRelativeDate(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return iso;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const that = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const days = Math.round((today.getTime() - that.getTime()) / 86400000);
+  if (days === 0) return "오늘";
+  if (days === 1) return "어제";
+  if (days < 7) return `${days}일 전`;
+  return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 interface DailyEntry {
@@ -147,6 +165,12 @@ export default function Page() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [editMode, setEditMode] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [lastActivity, setLastActivity] = useState<Map<string, KidLastActivity>>(
+    new Map(),
+  );
+  const rosterFileInputRef = useRef<HTMLInputElement>(null);
   const activityPlaceholder = useMemo(() => pickOne(ACTIVITY_EXAMPLES), []);
   const alrimMemoPlaceholder = useMemo(() => pickOne(ALRIM_MEMO_EXAMPLES), []);
   const gwanchalMemoPlaceholder = useMemo(() => pickOne(GWANCHAL_MEMO_EXAMPLES), []);
@@ -176,7 +200,17 @@ export default function Page() {
       }
     } catch {}
     setHydrated(true);
+    refreshLastActivity();
   }, []);
+
+  async function refreshLastActivity() {
+    try {
+      const map = await getLastActivityByKid();
+      setLastActivity(map);
+    } catch {
+      // DB unavailable — leave map empty.
+    }
+  }
 
   useEffect(() => {
     if (!hydrated) return;
@@ -284,7 +318,9 @@ export default function Page() {
   }
 
   function selectAll() {
-    setSelectedIds(new Set(children.map((c) => c.id)));
+    setSelectedIds(
+      new Set(children.filter((c) => !c.archived).map((c) => c.id)),
+    );
   }
 
   function deselectAll() {
@@ -332,6 +368,136 @@ export default function Page() {
     });
   }
 
+  async function renameChild(id: string, rawName: string): Promise<boolean> {
+    const child = children.find((c) => c.id === id);
+    if (!child) return false;
+    const trimmed = rawName.trim();
+    if (!trimmed) {
+      alert("이름을 비울 수 없어요.");
+      return false;
+    }
+    if (trimmed === child.name) return true;
+    if (hasName(children.filter((c) => c.id !== id), trimmed)) {
+      alert(`이미 "${trimmed}"라는 아이가 있어요. 다른 이름을 써 주세요.`);
+      return false;
+    }
+    setChildren((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, name: trimmed } : c)),
+    );
+    try {
+      await renameKid(id, trimmed);
+    } catch {
+      // The localStorage rename has already happened; DB sync is best-effort.
+    }
+    return true;
+  }
+
+  function archiveChild(id: string) {
+    const child = children.find((c) => c.id === id);
+    if (!child) return;
+    if (
+      !confirm(
+        [
+          `${child.name}을(를) 졸업/이동 처리할까요?`,
+          "",
+          "• 명단에서는 빠지지만 누적 기록은 그대로 보존돼요.",
+          "• 성장 리포트에서 이 아이의 과거 기록을 계속 볼 수 있어요.",
+          "• 하단의 '졸업/이동한 아이들'에서 언제든 복귀시킬 수 있어요.",
+        ].join("\n"),
+      )
+    ) {
+      return;
+    }
+    setChildren((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, archived: true } : c)),
+    );
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function unarchiveChild(id: string) {
+    setChildren((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, archived: false } : c)),
+    );
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }
+
+  function exportRoster() {
+    const active = children.filter((c) => !c.archived);
+    if (active.length === 0) {
+      alert("내보낼 아이 명단이 없어요.");
+      return;
+    }
+    const text = active.map((c) => c.name).join("\n") + "\n";
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const today = todayISO();
+    a.href = url;
+    a.download = `roster-${today}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function importRosterFile(file: File) {
+    try {
+      const text = await file.text();
+      const incoming = text
+        .split(/[\n,]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (!incoming.length) {
+        alert("파일에서 이름을 찾을 수 없어요.");
+        return;
+      }
+      const renamed: { from: string; to: string }[] = [];
+      const newChildren: Child[] = [];
+      const running: { name: string }[] = [...children];
+      for (const raw of incoming) {
+        let finalName = raw;
+        if (hasName(running, raw)) {
+          finalName = nextSuffixedName(raw, running);
+          renamed.push({ from: raw, to: finalName });
+        }
+        const child: Child = { id: uid(), name: finalName };
+        newChildren.push(child);
+        running.push(child);
+      }
+      setChildren((prev) => [...prev, ...newChildren]);
+      setEntries((prev) => {
+        const next = { ...prev };
+        for (const c of newChildren) next[c.id] = emptyEntry(c.id);
+        return next;
+      });
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        for (const c of newChildren) next.add(c.id);
+        return next;
+      });
+      const lines = [`${newChildren.length}명을 명단에 추가했어요.`];
+      if (renamed.length) {
+        lines.push(
+          "",
+          `이미 같은 이름이 있어 ${renamed.length}명은 자동으로 번호가 붙었어요:`,
+          ...renamed.slice(0, 5).map((r) => `• ${r.from} → ${r.to}`),
+        );
+        if (renamed.length > 5) lines.push(`외 ${renamed.length - 5}명 더…`);
+      }
+      alert(lines.join("\n"));
+    } catch (e) {
+      alert(`가져오기 실패: ${e instanceof Error ? e.message : "알 수 없는 오류"}`);
+    }
+  }
+
   function updateEntry(id: string, patch: Partial<DailyEntry>) {
     setEntries((prev) => ({
       ...prev,
@@ -350,11 +516,12 @@ export default function Page() {
   }
 
   async function generate() {
-    if (children.length === 0) {
+    const activeNow = children.filter((c) => !c.archived);
+    if (activeNow.length === 0) {
       setError("먼저 아이들을 등록해 주세요.");
       return;
     }
-    const todayChildren = children.filter((c) => selectedIds.has(c.id));
+    const todayChildren = activeNow.filter((c) => selectedIds.has(c.id));
     if (todayChildren.length === 0) {
       setError("오늘 기록할 아이를 한 명 이상 선택해 주세요.");
       return;
@@ -412,9 +579,11 @@ export default function Page() {
           createdAt: Date.now(),
         });
       }
-      saveDailyEntries(records).catch(() => {
-        // Don't surface DB errors — generation already succeeded.
-      });
+      saveDailyEntries(records)
+        .then(() => refreshLastActivity())
+        .catch(() => {
+          // Don't surface DB errors — generation already succeeded.
+        });
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {
@@ -443,7 +612,9 @@ export default function Page() {
     setTimeout(() => setCopiedId((prev) => (prev === "ALL" ? null : prev)), 1500);
   }
 
-  const todayChildren = children.filter((c) => selectedIds.has(c.id));
+  const activeChildren = children.filter((c) => !c.archived);
+  const archivedChildren = children.filter((c) => c.archived);
+  const todayChildren = activeChildren.filter((c) => selectedIds.has(c.id));
   const hasAnyEntry = todayChildren.some((c) => {
     const e = entries[c.id];
     return e && (e.meal || e.mood || e.nap || e.memo);
@@ -506,14 +677,14 @@ export default function Page() {
             title="우리 반 아이들"
             right={
               <span className="text-sm text-ink-muted tabular-nums">
-                {children.length > 0
-                  ? `전체 ${children.length}명 · 오늘 ${selectedIds.size}명`
+                {activeChildren.length > 0
+                  ? `전체 ${activeChildren.length}명 · 오늘 ${selectedIds.size}명`
                   : "0명 등록됨"}
               </span>
             }
           />
 
-          {children.length === 0 ? (
+          {activeChildren.length === 0 && archivedChildren.length === 0 ? (
             <div className="text-center py-10 text-ink-muted text-sm">
               <p className="font-display text-base text-ink-soft mb-1">
                 먼저 아이 이름을 추가해 주세요
@@ -522,107 +693,227 @@ export default function Page() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                 <p className="text-sm text-ink-soft leading-relaxed">
-                  기본은 모두 출석 상태예요. 결석한 아이만 한 번 눌러서 해제하시면 돼요.
+                  {editMode
+                    ? "이름을 수정·졸업 처리·삭제할 수 있어요. 이름을 바꿔도 누적 기록은 그대로 유지돼요."
+                    : "기본은 모두 출석 상태예요. 결석한 아이만 한 번 눌러서 해제하시면 돼요."}
                 </p>
-                <div className="flex items-center gap-2 shrink-0 text-xs">
+                <div className="flex items-center gap-2 shrink-0 text-xs flex-wrap">
+                  {!editMode && (
+                    <>
+                      <button
+                        onClick={selectAll}
+                        className="px-2.5 py-1 rounded-lg text-ink-soft hover:bg-warm-50 border border-warm-200"
+                      >
+                        전체 출석
+                      </button>
+                      <button
+                        onClick={deselectAll}
+                        className="px-2.5 py-1 rounded-lg text-ink-muted hover:bg-warm-50 border border-warm-200"
+                      >
+                        전체 해제
+                      </button>
+                    </>
+                  )}
                   <button
-                    onClick={selectAll}
-                    className="px-2.5 py-1 rounded-lg text-ink-soft hover:bg-warm-50 border border-warm-200"
+                    onClick={() => setEditMode((v) => !v)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border ${
+                      editMode
+                        ? "bg-terracotta-500 text-white border-terracotta-500"
+                        : "text-ink-soft border-warm-200 hover:bg-warm-50"
+                    }`}
                   >
-                    전체 출석
-                  </button>
-                  <button
-                    onClick={deselectAll}
-                    className="px-2.5 py-1 rounded-lg text-ink-muted hover:bg-warm-50 border border-warm-200"
-                  >
-                    전체 해제
+                    <Icon name="pencil" size={12} strokeWidth={2} />
+                    {editMode ? "수정 완료" : "명단 수정"}
                   </button>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {children.map((c) => {
-                  const selected = selectedIds.has(c.id);
+
+              {activeChildren.length > 0 && !editMode && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {activeChildren.map((c) => {
+                    const selected = selectedIds.has(c.id);
+                    const last = lastActivity.get(c.id);
+                    return (
+                      <div key={c.id} className="relative group">
+                        <button
+                          onClick={() => toggleSelected(c.id)}
+                          aria-pressed={selected}
+                          aria-label={
+                            selected ? `${c.name} 결석 처리` : `${c.name} 출석 처리`
+                          }
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition shadow-sm leading-tight ${
+                            selected
+                              ? "bg-sage-500 text-white border-sage-500 hover:bg-sage-600"
+                              : "bg-paper text-ink-muted border-warm-200 hover:bg-warm-50 hover:border-warm-300"
+                          }`}
+                        >
+                          <div>{c.name}</div>
+                          {last && (
+                            <div
+                              className={`text-[10.5px] mt-0.5 tabular-nums ${
+                                selected ? "text-white/75" : "text-ink-faint"
+                              }`}
+                            >
+                              최근 {formatRelativeDate(last.lastDate)}
+                            </div>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => removeChild(c.id)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-paper border border-warm-200 text-ink-faint hover:text-red-500 hover:border-red-200 inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition shadow-sm"
+                          aria-label={`${c.name} 명단에서 삭제`}
+                        >
+                          <Icon name="x" size={10} strokeWidth={2.4} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {activeChildren.length > 0 && editMode && (
+                <div className="space-y-2 mb-4 border border-warm-100 rounded-xl divide-y divide-warm-100">
+                  {activeChildren.map((c) => (
+                    <EditRosterRow
+                      key={c.id}
+                      child={c}
+                      lastActivity={lastActivity.get(c.id)}
+                      onRename={(newName) => renameChild(c.id, newName)}
+                      onArchive={() => archiveChild(c.id)}
+                      onDelete={() => removeChild(c.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {!editMode && (
+            <>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex gap-2 flex-1">
+                  <input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        addChild(newName);
+                        setNewName("");
+                      }
+                    }}
+                    placeholder="이름 입력 후 Enter"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      addChild(newName);
+                      setNewName("");
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl text-sm font-medium whitespace-nowrap shadow-sm"
+                  >
+                    <Icon name="plus" size={14} strokeWidth={2.2} />
+                    추가
+                  </button>
+                </div>
+              </div>
+              <details className="mt-4 text-sm">
+                <summary className="text-ink-muted cursor-pointer hover:text-ink-soft select-none">
+                  여러 명 한 번에 등록
+                </summary>
+                <div className="mt-3 flex gap-2">
+                  <textarea
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="이름들을 줄바꿈 또는 쉼표로 구분"
+                    rows={3}
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+                  />
+                  <button
+                    onClick={addBulk}
+                    className="px-4 py-2.5 bg-warm-100 text-ink-soft hover:bg-warm-200 rounded-xl text-sm font-medium self-start"
+                  >
+                    일괄 추가
+                  </button>
+                </div>
+              </details>
+              <div className="mt-4 pt-4 border-t border-warm-100 flex flex-wrap gap-2 text-xs">
+                <button
+                  onClick={exportRoster}
+                  disabled={activeChildren.length === 0}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-ink-soft border border-warm-200 hover:bg-warm-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Icon name="link" size={12} strokeWidth={2} />
+                  명단 내보내기 (.txt)
+                </button>
+                <button
+                  onClick={() => rosterFileInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-ink-soft border border-warm-200 hover:bg-warm-50"
+                >
+                  <Icon name="link" size={12} strokeWidth={2} />
+                  명단 가져오기
+                </button>
+                <input
+                  ref={rosterFileInputRef}
+                  type="file"
+                  accept=".txt,.csv,text/plain,text/csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) importRosterFile(file);
+                    e.target.value = "";
+                  }}
+                />
+                <span className="text-ink-faint self-center">
+                  새 학년 시작·다른 선생님과 공유 시 유용해요.
+                </span>
+              </div>
+            </>
+          )}
+
+          {archivedChildren.length > 0 && (
+            <details className="mt-4 pt-4 border-t border-warm-100">
+              <summary className="cursor-pointer text-sm text-ink-muted hover:text-ink-soft select-none inline-flex items-center gap-1.5">
+                <Icon name="users" size={14} strokeWidth={1.7} />
+                졸업/이동한 아이들 ({archivedChildren.length}명)
+              </summary>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {archivedChildren.map((c) => {
+                  const last = lastActivity.get(c.id);
                   return (
                     <div
                       key={c.id}
-                      className="relative group"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-warm-50 border border-warm-100 text-sm text-ink-muted"
                     >
+                      <span>{c.name}</span>
+                      {last && (
+                        <span className="text-[10.5px] text-ink-faint tabular-nums">
+                          ({last.count}건)
+                        </span>
+                      )}
                       <button
-                        onClick={() => toggleSelected(c.id)}
-                        aria-pressed={selected}
-                        aria-label={
-                          selected ? `${c.name} 결석 처리` : `${c.name} 출석 처리`
-                        }
-                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition shadow-sm ${
-                          selected
-                            ? "bg-sage-500 text-white border-sage-500 hover:bg-sage-600"
-                            : "bg-paper text-ink-muted border-warm-200 hover:bg-warm-50 hover:border-warm-300"
-                        }`}
+                        onClick={() => unarchiveChild(c.id)}
+                        className="text-xs px-2 py-0.5 rounded-md bg-paper border border-warm-200 text-ink-soft hover:bg-warm-50"
                       >
-                        {c.name}
+                        복귀
                       </button>
                       <button
                         onClick={() => removeChild(c.id)}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-paper border border-warm-200 text-ink-faint hover:text-red-500 hover:border-red-200 inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition shadow-sm"
-                        aria-label={`${c.name} 명단에서 삭제`}
+                        className="text-ink-faint hover:text-red-500"
+                        aria-label={`${c.name} 명단에서 영구 삭제`}
                       >
-                        <Icon name="x" size={10} strokeWidth={2.4} />
+                        <Icon name="x" size={12} strokeWidth={2.2} />
                       </button>
                     </div>
                   );
                 })}
               </div>
-            </>
+              <p className="text-xs text-ink-faint mt-2 leading-relaxed">
+                이 아이들의 누적 기록은 성장 리포트에서 계속 볼 수 있어요.
+              </p>
+            </details>
           )}
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex gap-2 flex-1">
-              <input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    addChild(newName);
-                    setNewName("");
-                  }
-                }}
-                placeholder="이름 입력 후 Enter"
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
-              />
-              <button
-                onClick={() => {
-                  addChild(newName);
-                  setNewName("");
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl text-sm font-medium whitespace-nowrap shadow-sm"
-              >
-                <Icon name="plus" size={14} strokeWidth={2.2} />
-                추가
-              </button>
-            </div>
-          </div>
-          <details className="mt-4 text-sm">
-            <summary className="text-ink-muted cursor-pointer hover:text-ink-soft select-none">
-              여러 명 한 번에 등록
-            </summary>
-            <div className="mt-3 flex gap-2">
-              <textarea
-                value={bulkInput}
-                onChange={(e) => setBulkInput(e.target.value)}
-                placeholder="이름들을 줄바꿈 또는 쉼표로 구분"
-                rows={3}
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
-              />
-              <button
-                onClick={addBulk}
-                className="px-4 py-2.5 bg-warm-100 text-ink-soft hover:bg-warm-200 rounded-xl text-sm font-medium self-start"
-              >
-                일괄 추가
-              </button>
-            </div>
-          </details>
         </section>
 
         <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
@@ -804,6 +1095,80 @@ export default function Page() {
         )}
       </div>
     </main>
+  );
+}
+
+function EditRosterRow({
+  child,
+  lastActivity: last,
+  onRename,
+  onArchive,
+  onDelete,
+}: {
+  child: Child;
+  lastActivity?: KidLastActivity;
+  onRename: (newName: string) => Promise<boolean>;
+  onArchive: () => void;
+  onDelete: () => void;
+}) {
+  const [draft, setDraft] = useState(child.name);
+  const [saving, setSaving] = useState(false);
+
+  // Keep the draft in sync if the underlying name changes from elsewhere.
+  useEffect(() => {
+    setDraft(child.name);
+  }, [child.name]);
+
+  const dirty = draft.trim() !== child.name;
+
+  async function handleSave() {
+    if (!dirty) return;
+    setSaving(true);
+    try {
+      const ok = await onRename(draft);
+      if (!ok) setDraft(child.name);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-3 py-2.5">
+      <input
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSave();
+          else if (e.key === "Escape") setDraft(child.name);
+        }}
+        className="flex-1 min-w-[8rem] px-3 py-1.5 rounded-lg border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+      />
+      {last && (
+        <span className="text-[11px] text-ink-muted tabular-nums whitespace-nowrap">
+          누적 {last.count}건 · 최근 {formatRelativeDate(last.lastDate)}
+        </span>
+      )}
+      <button
+        onClick={handleSave}
+        disabled={!dirty || saving}
+        className="text-xs px-2.5 py-1 rounded-lg bg-sage-500 hover:bg-sage-600 text-white disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed"
+      >
+        저장
+      </button>
+      <button
+        onClick={onArchive}
+        className="text-xs px-2.5 py-1 rounded-lg text-ink-soft border border-warm-200 hover:bg-warm-50"
+        title="명단에서 빼되 누적 기록은 보존"
+      >
+        졸업/이동
+      </button>
+      <button
+        onClick={onDelete}
+        className="text-xs px-2.5 py-1 rounded-lg text-ink-muted hover:text-red-600 hover:bg-red-50"
+      >
+        삭제
+      </button>
+    </div>
   );
 }
 
