@@ -527,6 +527,17 @@ export default function Page() {
       setError("오늘 기록할 아이를 한 명 이상 선택해 주세요.");
       return;
     }
+    const hasActivity = todayActivity.trim() !== "";
+    const hasAnyMemo = todayChildren.some((c) => {
+      const e = entries[c.id];
+      return !!(e && (e.meal || e.mood || e.nap || e.memo?.trim()));
+    });
+    if (!hasActivity && !hasAnyMemo) {
+      setError(
+        "오늘 활동이나 아이별 모습을 한 줄이라도 적어 주세요. AI가 만들 내용이 없어요.",
+      );
+      return;
+    }
     setError(null);
     setGenerating(true);
     setNotes((prev) => ({ ...prev, [docType]: {} }));
