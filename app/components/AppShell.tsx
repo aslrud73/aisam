@@ -2,6 +2,7 @@ import { Sidebar } from "./Sidebar";
 import { MobileHeader } from "./MobileHeader";
 import { BottomTabs } from "./BottomTabs";
 import { Footer } from "./Footer";
+import { PWAInstallPrompt } from "./PWAInstallPrompt";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Footer />
       </div>
       <BottomTabs />
+      <PWAInstallPrompt />
     </div>
   );
 }
