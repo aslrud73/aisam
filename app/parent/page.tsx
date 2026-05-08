@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
+import { ParentIllust } from "../components/illustrations";
 import {
   saveParentReply,
   listParentReplies,
@@ -115,8 +116,8 @@ export default function ParentPage() {
     <main className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
       <SetupBanner />
       <div className="flex items-start gap-3">
-        <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-terracotta-50 text-terracotta-600 shrink-0">
-          <Icon name="chat" size={20} strokeWidth={1.7} />
+        <span className="shrink-0">
+          <ParentIllust size={40} />
         </span>
         <div>
           <h1 className="text-2xl font-semibold text-ink tracking-tight">학부모 답변 도우미</h1>

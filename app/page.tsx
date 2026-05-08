@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { SetupBanner } from "./components/SetupBanner";
 import { Icon, type IconName } from "./components/Icon";
+import { AlrimIllust, GwanchalIllust } from "./components/illustrations";
 import {
   saveDailyEntries,
   countKidEntries,
@@ -625,11 +626,20 @@ export default function Page() {
       <div className="max-w-4xl mx-auto px-5 pt-6 space-y-5">
         <SetupBanner />
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-ink tracking-tight">오늘 기록</h1>
-            <p className="text-sm text-ink-muted mt-0.5">
-              아이별 알림장과 관찰일지를 한 번에 작성해요
-            </p>
+          <div className="flex items-start gap-3">
+            <span className="shrink-0">
+              {docType === "alrim" ? (
+                <AlrimIllust size={40} />
+              ) : (
+                <GwanchalIllust size={40} />
+              )}
+            </span>
+            <div>
+              <h1 className="text-2xl font-semibold text-ink tracking-tight">오늘 기록</h1>
+              <p className="text-sm text-ink-muted mt-0.5">
+                아이별 알림장과 관찰일지를 한 번에 작성해요
+              </p>
+            </div>
           </div>
           <label className="flex items-center gap-2 text-sm">
             <span className="text-ink-muted">반 이름</span>
