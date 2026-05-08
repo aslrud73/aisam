@@ -69,6 +69,7 @@ interface PersistedState {
   entries: Record<string, DailyEntry>;
   tone: ToneStyle;
   docType: DocType;
+  selectedIds?: string[];
 }
 
 const DOC_LABELS: Record<DocType, { name: string; sub: string }> = {
@@ -120,6 +121,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const activityPlaceholder = useMemo(() => pickOne(ACTIVITY_EXAMPLES), []);
   const alrimMemoPlaceholder = useMemo(() => pickOne(ALRIM_MEMO_EXAMPLES), []);
   const gwanchalMemoPlaceholder = useMemo(() => pickOne(GWANCHAL_MEMO_EXAMPLES), []);
@@ -130,11 +132,22 @@ export default function Page() {
       if (raw) {
         const parsed: PersistedState = JSON.parse(raw);
         setClassName(parsed.className ?? "햇살반");
-        setChildren(parsed.children ?? []);
+        const loadedChildren = parsed.children ?? [];
+        setChildren(loadedChildren);
         setTodayActivity(parsed.todayActivity ?? "");
         setEntries(parsed.entries ?? {});
         setTone(parsed.tone ?? "warm");
         setDocType(parsed.docType ?? "alrim");
+        // Default: every registered child is selected for today.
+        // Migrating users (no selectedIds in storage) get everyone selected.
+        const stored = parsed.selectedIds;
+        if (stored && stored.length) {
+          // Drop ids that no longer exist.
+          const validIds = new Set(loadedChildren.map((c) => c.id));
+          setSelectedIds(new Set(stored.filter((id) => validIds.has(id))));
+        } else {
+          setSelectedIds(new Set(loadedChildren.map((c) => c.id)));
+        }
       }
     } catch {}
     setHydrated(true);
@@ -149,9 +162,10 @@ export default function Page() {
       entries,
       tone,
       docType,
+      selectedIds: Array.from(selectedIds),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [hydrated, className, children, todayActivity, entries, tone, docType]);
+  }, [hydrated, className, children, todayActivity, entries, tone, docType, selectedIds]);
 
   function addChild(name: string) {
     const trimmed = name.trim();
@@ -159,6 +173,11 @@ export default function Page() {
     const id = uid();
     setChildren((prev) => [...prev, { id, name: trimmed }]);
     setEntries((prev) => ({ ...prev, [id]: emptyEntry(id) }));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
   }
 
   function addBulk() {
@@ -174,7 +193,29 @@ export default function Page() {
       for (const c of newChildren) next[c.id] = emptyEntry(c.id);
       return next;
     });
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const c of newChildren) next.add(c.id);
+      return next;
+    });
     setBulkInput("");
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedIds(new Set(children.map((c) => c.id)));
+  }
+
+  function deselectAll() {
+    setSelectedIds(new Set());
   }
 
   function removeChild(id: string) {
@@ -188,6 +229,11 @@ export default function Page() {
       const next = { alrim: { ...prev.alrim }, gwanchal: { ...prev.gwanchal } };
       delete next.alrim[id];
       delete next.gwanchal[id];
+      return next;
+    });
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
       return next;
     });
   }
@@ -214,6 +260,11 @@ export default function Page() {
       setError("먼저 아이들을 등록해 주세요.");
       return;
     }
+    const todayChildren = children.filter((c) => selectedIds.has(c.id));
+    if (todayChildren.length === 0) {
+      setError("오늘 기록할 아이를 한 명 이상 선택해 주세요.");
+      return;
+    }
     setError(null);
     setGenerating(true);
     setNotes((prev) => ({ ...prev, [docType]: {} }));
@@ -226,7 +277,7 @@ export default function Page() {
           todayActivity,
           tone,
           docType,
-          children: children.map((c) => ({
+          children: todayChildren.map((c) => ({
             id: c.id,
             name: c.name,
             entry: entries[c.id] ?? emptyEntry(c.id),
@@ -298,7 +349,8 @@ export default function Page() {
     setTimeout(() => setCopiedId((prev) => (prev === "ALL" ? null : prev)), 1500);
   }
 
-  const hasAnyEntry = children.some((c) => {
+  const todayChildren = children.filter((c) => selectedIds.has(c.id));
+  const hasAnyEntry = todayChildren.some((c) => {
     const e = entries[c.id];
     return e && (e.meal || e.mood || e.nap || e.memo);
   });
@@ -360,7 +412,9 @@ export default function Page() {
             title="우리 반 아이들"
             right={
               <span className="text-sm text-ink-muted tabular-nums">
-                {children.length}명 등록됨
+                {children.length > 0
+                  ? `전체 ${children.length}명 · 오늘 ${selectedIds.size}명`
+                  : "0명 등록됨"}
               </span>
             }
           />
@@ -373,23 +427,62 @@ export default function Page() {
               <p>한 번 등록하면 매일 다시 입력할 필요가 없어요.</p>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {children.map((c) => (
-                <span
-                  key={c.id}
-                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 bg-cream-100 border border-warm-100 rounded-full text-sm text-ink-soft"
-                >
-                  {c.name}
+            <>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <p className="text-sm text-ink-soft leading-relaxed">
+                  오늘 기록할 아이를 클릭해서 선택하세요. 결석한 아이는 한 번 더
+                  눌러 빼시면 돼요.
+                </p>
+                <div className="flex items-center gap-2 shrink-0 text-xs">
                   <button
-                    onClick={() => removeChild(c.id)}
-                    className="text-ink-faint hover:text-red-500 inline-flex items-center"
-                    aria-label={`${c.name} 삭제`}
+                    onClick={selectAll}
+                    className="px-2.5 py-1 rounded-lg text-ink-soft hover:bg-warm-50 border border-warm-200"
                   >
-                    <Icon name="x" size={12} strokeWidth={2.2} />
+                    전체 출석
                   </button>
-                </span>
-              ))}
-            </div>
+                  <button
+                    onClick={deselectAll}
+                    className="px-2.5 py-1 rounded-lg text-ink-muted hover:bg-warm-50 border border-warm-200"
+                  >
+                    전체 해제
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {children.map((c) => {
+                  const selected = selectedIds.has(c.id);
+                  return (
+                    <span
+                      key={c.id}
+                      className={`group inline-flex items-center gap-1.5 rounded-full text-sm border transition ${
+                        selected
+                          ? "bg-sage-50 border-sage-200 text-sage-600"
+                          : "bg-warm-50 border-warm-100 text-ink-faint"
+                      }`}
+                    >
+                      <button
+                        onClick={() => toggleSelected(c.id)}
+                        className={`pl-3 pr-1.5 py-1.5 rounded-l-full font-medium ${
+                          selected ? "" : "line-through decoration-1"
+                        }`}
+                        aria-label={
+                          selected ? `${c.name} 출석 해제` : `${c.name} 출석`
+                        }
+                      >
+                        {c.name}
+                      </button>
+                      <button
+                        onClick={() => removeChild(c.id)}
+                        className="pr-2.5 text-ink-faint hover:text-red-500 inline-flex items-center"
+                        aria-label={`${c.name} 명단에서 삭제`}
+                      >
+                        <Icon name="x" size={12} strokeWidth={2.2} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            </>
           )}
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -454,7 +547,7 @@ export default function Page() {
           </p>
         </section>
 
-        {children.length > 0 && (
+        {todayChildren.length > 0 && (
           <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
             <StepHeader
               step={3}
@@ -473,11 +566,11 @@ export default function Page() {
             />
             <p className="text-sm text-ink-soft mb-4 leading-relaxed">
               {docType === "gwanchal"
-                ? "각 아이의 관찰된 모습을 짧게 메모해 주세요. 식사·기분·낮잠은 참고만 됩니다."
-                : "빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요. 비워두셔도 괜찮아요."}
+                ? `오늘 선택한 ${todayChildren.length}명에 대해서만 작성돼요. 각 아이의 관찰된 모습을 짧게 메모해 주세요.`
+                : `오늘 선택한 ${todayChildren.length}명에 대해서만 작성돼요. 빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요.`}
             </p>
             <div className="space-y-3">
-              {children.map((c) => (
+              {todayChildren.map((c) => (
                 <ChildRow
                   key={c.id}
                   child={c}
@@ -522,13 +615,15 @@ export default function Page() {
           </div>
           <button
             onClick={generate}
-            disabled={generating || children.length === 0}
+            disabled={generating || todayChildren.length === 0}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
           >
             {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
             {generating
               ? `AI가 ${DOC_LABELS[docType].name}을 작성하고 있어요...`
-              : `${children.length}명의 ${DOC_LABELS[docType].name} 한 번에 생성하기`}
+              : todayChildren.length === 0
+                ? `오늘 기록할 아이를 먼저 선택해 주세요`
+                : `오늘 ${todayChildren.length}명의 ${DOC_LABELS[docType].name} 한 번에 생성하기`}
           </button>
           <div className="mt-4 flex items-start gap-2 text-xs text-ink-muted leading-relaxed">
             <span className="text-warm-400 shrink-0 mt-0.5">
