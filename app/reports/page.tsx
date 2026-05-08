@@ -458,7 +458,7 @@ export default function ReportsPage() {
                     aria-pressed={includeAlrim}
                     className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                       includeAlrim
-                        ? "bg-navy-50 text-navy-700 border-navy-200 shadow-sm"
+                        ? "bg-coral-50 text-coral-700 border-coral-200 shadow-sm"
                         : "bg-paper text-ink-muted border-warm-200 hover:border-warm-300"
                     }`}
                   >
@@ -469,7 +469,7 @@ export default function ReportsPage() {
                     aria-pressed={includeGwanchal}
                     className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                       includeGwanchal
-                        ? "bg-navy-50 text-navy-600 border-navy-200 shadow-sm"
+                        ? "bg-sage-50 text-sage-700 border-sage-200 shadow-sm"
                         : "bg-paper text-ink-muted border-warm-200 hover:border-warm-300"
                     }`}
                   >
