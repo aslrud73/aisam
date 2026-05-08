@@ -166,7 +166,7 @@ export function HistorySection({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => copyDetail(item)}
-                        className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                        className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-[var(--page-accent-100)] hover:bg-[var(--page-accent-200)] text-[var(--page-accent-700)] rounded-xl font-medium"
                       >
                         <Icon name="copy" size={12} strokeWidth={1.8} />
                         {copiedId === item.id ? "복사됨" : "전체 복사"}

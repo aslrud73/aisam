@@ -44,6 +44,7 @@
    각 페이지 <main>에 data-page="..." 지정. */
 :root {
   --page-accent-50: #FBF1EC;
+  --page-accent-100: #F5DDD2;
   --page-accent-200: #EBBCA8;
   --page-accent-500: #C56B4A;
   --page-accent-700: #8C462C;
@@ -51,6 +52,7 @@
 
 [data-page="parent"] {
   --page-accent-50: #FBF1D8;
+  --page-accent-100: #F4DDA0;
   --page-accent-200: #ECCB75;
   --page-accent-500: #D4A537;
   --page-accent-700: #8B6C22;
@@ -58,6 +60,7 @@
 
 [data-page="play"] {
   --page-accent-50: #ECE7F4;
+  --page-accent-100: #D4CBE5;
   --page-accent-200: #B8AAD3;
   --page-accent-500: #8B7BB5;
   --page-accent-700: #5F538A;
@@ -65,6 +68,7 @@
 
 [data-page="reports"] {
   --page-accent-50: #DCE6F0;
+  --page-accent-100: #B5C5D9;
   --page-accent-200: #8BA2BF;
   --page-accent-500: #2D4A6B;
   --page-accent-700: #1B3147;
