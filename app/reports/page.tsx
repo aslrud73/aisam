@@ -552,8 +552,8 @@ export default function ReportsPage() {
                                     <span
                                       className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10.5px] ${
                                         e.docType === "gwanchal"
-                                          ? "bg-navy-50 border-navy-100 text-navy-600"
-                                          : "bg-navy-50 border-navy-100 text-navy-700"
+                                          ? "bg-sage-50 border-sage-100 text-sage-700"
+                                          : "bg-coral-50 border-coral-100 text-coral-700"
                                       }`}
                                     >
                                       {e.docType === "gwanchal" ? "관찰일지" : "알림장"}
