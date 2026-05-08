@@ -195,8 +195,14 @@ export async function POST(req: Request) {
     ? (TONE_GUIDE_GWANCHAL[tone] ?? TONE_GUIDE_GWANCHAL.warm)
     : (TONE_GUIDE_ALRIM[tone] ?? TONE_GUIDE_ALRIM.warm);
 
+  const ANONYMOUS_KID_ID = "__anonymous__";
   const childrenSection = children
     .map((c, i) => {
+      if (c.id === ANONYMOUS_KID_ID) {
+        const e = c.entry ?? {};
+        const memoPart = e.memo ? `\n   추가 안내 메모: ${e.memo}` : "";
+        return `${i + 1}. id="${c.id}" [공통 ${isGwanchal ? "관찰일지" : "알림장"} — 특정 아이 이름을 부르지 말고, 반 전체에 대한 일반 안내문 톤으로 작성. "○○이는…" 같은 호칭 절대 금지. 대신 "오늘 우리반은…", "선생님은…", "아이들은…" 같은 표현을 써 주세요.]${memoPart}`;
+      }
       const e = c.entry ?? {};
       const parts: string[] = [];
       if (e.meal) parts.push(`식사: ${e.meal}`);

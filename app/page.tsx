@@ -103,6 +103,9 @@ interface GeneratedNote {
 
 const STORAGE_KEY = "oneul-notification-state-v2";
 
+const ANONYMOUS_KID_ID = "__anonymous__";
+const ANONYMOUS_KID_NAME = "공통";
+
 type DocType = "alrim" | "gwanchal";
 type ToneStyle = "warm" | "concise" | "detailed";
 
@@ -518,26 +521,34 @@ export default function Page() {
 
   async function generate() {
     const activeNow = children.filter((c) => !c.archived);
-    if (activeNow.length === 0) {
-      setError("먼저 아이들을 등록해 주세요.");
+    const anonSelected = selectedIds.has(ANONYMOUS_KID_ID);
+    const realTodayChildren = activeNow.filter((c) => selectedIds.has(c.id));
+
+    if (!anonSelected && realTodayChildren.length === 0) {
+      if (activeNow.length === 0) {
+        setError("먼저 아이들을 등록하거나 '공통' 카드를 선택해 주세요.");
+      } else {
+        setError("오늘 기록할 아이를 한 명 이상 선택해 주세요.");
+      }
       return;
     }
-    const todayChildren = activeNow.filter((c) => selectedIds.has(c.id));
-    if (todayChildren.length === 0) {
-      setError("오늘 기록할 아이를 한 명 이상 선택해 주세요.");
-      return;
-    }
+
     const hasActivity = todayActivity.trim() !== "";
-    const hasAnyMemoText = todayChildren.some((c) => {
+    const hasAnyMemoText = realTodayChildren.some((c) => {
       const e = entries[c.id];
       return !!(e && e.memo?.trim());
     });
+    if (anonSelected && realTodayChildren.length === 0 && !hasActivity) {
+      setError("공통 알림장은 오늘 활동을 한 줄 이상 적어 주세요.");
+      return;
+    }
     if (!hasActivity && !hasAnyMemoText) {
       setError(
         "오늘 활동이나 아이별 특이사항을 한 줄이라도 적어 주세요. (식사·기분·낮잠 토글만으로는 만들 내용이 부족해요.)",
       );
       return;
     }
+    const todayChildren = displayChildren.filter((c) => selectedIds.has(c.id));
     setError(null);
     setGenerating(true);
     setNotes((prev) => ({ ...prev, [docType]: {} }));
@@ -571,7 +582,7 @@ export default function Page() {
       const date = todayISO();
       const records: DailyEntryRecord[] = [];
       for (const n of data.notes) {
-        const child = children.find((c) => c.id === n.childId);
+        const child = displayChildren.find((c) => c.id === n.childId);
         if (!child) continue;
         const e = entries[child.id];
         records.push({
@@ -625,8 +636,12 @@ export default function Page() {
   }
 
   const activeChildren = children.filter((c) => !c.archived);
+  const displayChildren: Child[] = [
+    { id: ANONYMOUS_KID_ID, name: ANONYMOUS_KID_NAME },
+    ...activeChildren,
+  ];
   const archivedChildren = children.filter((c) => c.archived);
-  const todayChildren = activeChildren.filter((c) => selectedIds.has(c.id));
+  const todayChildren = displayChildren.filter((c) => selectedIds.has(c.id));
   const hasAnyEntry = todayChildren.some((c) => {
     const e = entries[c.id];
     return e && (e.meal || e.mood || e.nap || e.memo);
@@ -699,18 +714,45 @@ export default function Page() {
             right={
               <span className="text-sm text-ink-muted tabular-nums">
                 {activeChildren.length > 0
-                  ? `전체 ${activeChildren.length}명 · 오늘 ${selectedIds.size}명`
+                  ? `전체 ${activeChildren.length}명 · 오늘 ${
+                      Array.from(selectedIds).filter(
+                        (id) => id !== ANONYMOUS_KID_ID,
+                      ).length
+                    }명`
                   : "0명 등록됨"}
               </span>
             }
           />
 
           {activeChildren.length === 0 && archivedChildren.length === 0 ? (
-            <div className="text-center py-10 text-ink-muted text-sm">
+            <div className="text-center text-ink-muted text-sm">
               <p className="font-display text-base text-ink-soft mb-1">
-                먼저 아이 이름을 추가해 주세요
+                먼저 아이 이름을 추가하거나
               </p>
-              <p>한 번 등록하면 매일 다시 입력할 필요가 없어요.</p>
+              <p className="mb-4">
+                아래 &apos;공통&apos; 카드를 눌러 일반 알림장을 만들 수 있어요.
+              </p>
+              <div className="flex flex-wrap gap-2 mb-4 justify-center">
+                <button
+                  onClick={() => toggleSelected(ANONYMOUS_KID_ID)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition shadow-sm leading-tight ${
+                    selectedIds.has(ANONYMOUS_KID_ID)
+                      ? "bg-[var(--accent-500)] text-white border-[var(--accent-500)] hover:bg-[var(--accent-600)]"
+                      : "bg-paper text-ink-muted border-warm-300 border-dashed hover:bg-warm-50"
+                  }`}
+                >
+                  <div>{ANONYMOUS_KID_NAME}</div>
+                  <div
+                    className={`text-[10.5px] mt-0.5 ${
+                      selectedIds.has(ANONYMOUS_KID_ID)
+                        ? "text-white/75"
+                        : "text-ink-faint"
+                    }`}
+                  >
+                    공통 메시지
+                  </div>
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -751,11 +793,12 @@ export default function Page() {
                 </div>
               </div>
 
-              {activeChildren.length > 0 && !editMode && (
+              {!editMode && (
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {activeChildren.map((c) => {
+                  {displayChildren.map((c) => {
                     const selected = selectedIds.has(c.id);
-                    const last = lastActivity.get(c.id);
+                    const isAnon = c.id === ANONYMOUS_KID_ID;
+                    const last = isAnon ? null : lastActivity.get(c.id);
                     return (
                       <div key={c.id} className="relative group">
                         <button
@@ -767,11 +810,13 @@ export default function Page() {
                           className={`px-4 py-2 rounded-xl text-sm font-medium border transition shadow-sm leading-tight ${
                             selected
                               ? "bg-[var(--accent-500)] text-white border-[var(--accent-500)] hover:bg-[var(--accent-600)]"
-                              : "bg-paper text-ink-muted border-warm-200 hover:bg-warm-50 hover:border-warm-300"
+                              : isAnon
+                                ? "bg-paper text-ink-muted border-warm-300 border-dashed hover:bg-warm-50"
+                                : "bg-paper text-ink-muted border-warm-200 hover:bg-warm-50 hover:border-warm-300"
                           }`}
                         >
                           <div>{c.name}</div>
-                          {last && (
+                          {last ? (
                             <div
                               className={`text-[10.5px] mt-0.5 tabular-nums ${
                                 selected ? "text-white/75" : "text-ink-faint"
@@ -779,15 +824,25 @@ export default function Page() {
                             >
                               최근 {formatRelativeDate(last.lastDate)}
                             </div>
-                          )}
+                          ) : isAnon ? (
+                            <div
+                              className={`text-[10.5px] mt-0.5 ${
+                                selected ? "text-white/75" : "text-ink-faint"
+                              }`}
+                            >
+                              공통 메시지
+                            </div>
+                          ) : null}
                         </button>
-                        <button
-                          onClick={() => removeChild(c.id)}
-                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-paper border border-warm-200 text-ink-faint hover:text-red-500 hover:border-red-200 inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition shadow-sm"
-                          aria-label={`${c.name} 명단에서 삭제`}
-                        >
-                          <Icon name="x" size={10} strokeWidth={2.4} />
-                        </button>
+                        {!isAnon && (
+                          <button
+                            onClick={() => removeChild(c.id)}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-paper border border-warm-200 text-ink-faint hover:text-red-500 hover:border-red-200 inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition shadow-sm"
+                            aria-label={`${c.name} 명단에서 삭제`}
+                          >
+                            <Icon name="x" size={10} strokeWidth={2.4} />
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -1207,12 +1262,15 @@ function ChildRow({
   memoPlaceholder: string;
 }) {
   const isGwanchal = docType === "gwanchal";
-  const placeholder = memoPlaceholder;
+  const isAnon = child.id === ANONYMOUS_KID_ID;
+  const placeholder = isAnon
+    ? "추가 안내 (선택, 예: 내일 우천 시 실내 활동)"
+    : memoPlaceholder;
   return (
     <div className="rounded-2xl p-3.5 bg-cream-50">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2.5">
         <span className="font-semibold text-ink min-w-[3.5rem]">{child.name}</span>
-        {!isGwanchal && (
+        {!isGwanchal && !isAnon && (
           <>
             <ToggleGroup
               label="식사"
@@ -1236,6 +1294,11 @@ function ChildRow({
               onChange={(v) => onChange({ nap: v as NapStatus })}
             />
           </>
+        )}
+        {isAnon && (
+          <span className="text-xs text-ink-muted">
+            공통 알림장 — 특정 아이 이름 없이 일반 안내문으로 작성됩니다
+          </span>
         )}
       </div>
       {isGwanchal ? (

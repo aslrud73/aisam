@@ -638,16 +638,29 @@ export default function ReportsPage() {
           <section className="bg-paper rounded-2xl p-6 shadow-card">
             <button
               onClick={generate}
-              disabled={generating || reportEntries.length === 0 || !range}
+              disabled={
+                generating ||
+                reportEntries.length === 0 ||
+                !range ||
+                selectedKid?.kidId === "__anonymous__"
+              }
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-navy-500 hover:bg-navy-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
             >
               {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
               {generating
                 ? "AI가 누적 기록을 종합하고 있어요..."
-                : reportEntries.length === 0
-                  ? "반영할 기록이 없어요"
-                  : `${selectedKid?.kidName ?? ""} ${range?.label ?? ""} 리포트 생성하기 (${reportEntries.length}건 반영)`}
+                : selectedKid?.kidId === "__anonymous__"
+                  ? "공통 알림장은 한 달 리포트를 만들지 않아요"
+                  : reportEntries.length === 0
+                    ? "반영할 기록이 없어요"
+                    : `${selectedKid?.kidName ?? ""} ${range?.label ?? ""} 리포트 생성하기 (${reportEntries.length}건 반영)`}
             </button>
+            {selectedKid?.kidId === "__anonymous__" && (
+              <p className="mt-3 text-xs text-ink-muted leading-relaxed">
+                공통 알림장은 누적 보관용입니다. 한 달 리포트는 개별 아이만
+                만들어요 (1:1 컨셉).
+              </p>
+            )}
             <div className="mt-4 flex items-start gap-2 text-xs text-ink-muted leading-relaxed">
               <span className="text-warm-400 shrink-0 mt-0.5">
                 <Icon name="shield" size={14} strokeWidth={1.6} />
