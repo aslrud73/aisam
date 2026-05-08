@@ -251,7 +251,7 @@ export default function ParentPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={copyDraft}
-                className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-[var(--page-accent-100)] hover:bg-[var(--page-accent-200)] text-[var(--page-accent-700)] rounded-xl font-medium"
               >
                 <Icon name="copy" size={14} strokeWidth={1.8} />
                 {copied ? "복사됨" : "복사"}
@@ -270,7 +270,7 @@ export default function ParentPage() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={Math.max(8, draft.split("\n").length + 2)}
-            className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-mustard-300 rounded-2xl p-4 resize-none focus:outline-none text-ink-soft"
+            className="w-full text-sm leading-relaxed bg-[var(--page-accent-50)] border-l-2 border-mustard-300 rounded-2xl p-4 resize-none focus:outline-none text-ink-soft"
           />
           <p className="text-xs text-ink-muted mt-3">
             내용은 직접 수정할 수 있어요. 복사 후 키즈노트·카카오톡·문자에

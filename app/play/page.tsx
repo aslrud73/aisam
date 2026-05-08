@@ -234,7 +234,7 @@ export default function PlayPage() {
             handleFiles(e.dataTransfer.files);
           }}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-warm-200 hover:border-lavender-300 rounded-2xl p-7 text-center cursor-pointer transition bg-cream-100"
+          className="border-2 border-dashed border-warm-200 hover:border-lavender-300 rounded-2xl p-7 text-center cursor-pointer transition bg-[var(--page-accent-50)]"
         >
           <input
             ref={fileInputRef}
@@ -361,7 +361,7 @@ export default function PlayPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={copyAll}
-                className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-[var(--page-accent-100)] hover:bg-[var(--page-accent-200)] text-[var(--page-accent-700)] rounded-xl font-medium"
               >
                 <Icon name="copy" size={14} strokeWidth={1.8} />
                 {copied ? "전체 복사됨" : "전체 복사"}
@@ -386,7 +386,7 @@ export default function PlayPage() {
                   value={journal[key]}
                   onChange={(e) => updateSection(key, e.target.value)}
                   rows={Math.max(2, journal[key].split("\n").length + 1)}
-                  className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-lavender-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
+                  className="w-full text-sm leading-relaxed bg-[var(--page-accent-50)] border-l-2 border-lavender-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
                 />
               </div>
             ))}

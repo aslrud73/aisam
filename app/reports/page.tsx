@@ -356,7 +356,7 @@ export default function ReportsPage() {
       {loading ? (
         <div className="text-center text-ink-faint py-16">불러오는 중...</div>
       ) : kids.length === 0 ? (
-        <div className="bg-cream-100 rounded-2xl p-10 text-center text-sm text-ink-soft leading-relaxed shadow-card">
+        <div className="bg-[var(--page-accent-50)] rounded-2xl p-10 text-center text-sm text-ink-soft leading-relaxed shadow-card">
           <p className="font-display text-base text-ink mb-2">아직 누적된 기록이 없어요</p>
           <p>
             "오늘 기록"에서 알림장이나 관찰일지를 한 번 이상 생성하면<br />
@@ -414,7 +414,7 @@ export default function ReportsPage() {
             </div>
 
             {presetId === "custom" && (
-              <div className="flex flex-wrap items-center gap-2 mb-3 bg-cream-100 rounded-xl px-3 py-2.5">
+              <div className="flex flex-wrap items-center gap-2 mb-3 bg-[var(--page-accent-50)] rounded-xl px-3 py-2.5">
                 <span className="text-xs text-ink-muted">기간:</span>
                 <input
                   type="date"
@@ -582,28 +582,28 @@ export default function ReportsPage() {
                                 {(e.meal || e.mood || e.nap || e.memo) && (
                                   <div className="flex flex-wrap gap-1.5 text-[11px] text-ink-muted">
                                     {e.meal && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
+                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
                                         식사 · {e.meal}
                                       </span>
                                     )}
                                     {e.mood && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
+                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
                                         기분 · {e.mood}
                                       </span>
                                     )}
                                     {e.nap && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
+                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
                                         낮잠 · {e.nap}
                                       </span>
                                     )}
                                     {e.memo && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
+                                      <span className="px-2 py-0.5 rounded-full bg-[var(--page-accent-50)] ">
                                         메모 · {e.memo}
                                       </span>
                                     )}
                                   </div>
                                 )}
-                                <p className="text-sm leading-relaxed text-ink-soft whitespace-pre-wrap bg-cream-100 border-l-2 border-navy-200 rounded-xl px-3 py-2">
+                                <p className="text-sm leading-relaxed text-ink-soft whitespace-pre-wrap bg-[var(--page-accent-50)] border-l-2 border-navy-200 rounded-xl px-3 py-2">
                                   {e.text}
                                 </p>
                                 {id !== undefined && (
@@ -677,7 +677,7 @@ export default function ReportsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={copyAll}
-                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-[var(--page-accent-100)] hover:bg-[var(--page-accent-200)] text-[var(--page-accent-700)] rounded-xl font-medium"
                   >
                     <Icon name="copy" size={14} strokeWidth={1.8} />
                     {copied ? "전체 복사됨" : "전체 복사"}
@@ -702,7 +702,7 @@ export default function ReportsPage() {
                       value={report[key]}
                       onChange={(e) => updateSection(key, e.target.value)}
                       rows={Math.max(2, report[key].split("\n").length + 1)}
-                      className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-navy-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
+                      className="w-full text-sm leading-relaxed bg-[var(--page-accent-50)] border-l-2 border-navy-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
                     />
                   </div>
                 ))}
