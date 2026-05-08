@@ -2,7 +2,7 @@
 
 import Dexie, { type Table } from "dexie";
 
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 export interface DailyEntryRecord {
   id?: number;
@@ -55,10 +55,31 @@ export interface PlayJournalRecord {
   createdAt: number;
 }
 
+export interface GrowthReportRecord {
+  id?: number;
+  kidId: string;
+  kidName: string;
+  periodLabel: string;
+  periodFrom: string;
+  periodTo: string;
+  entryCount: number;
+  intro: string;
+  interests: string;
+  peerRelations: string;
+  language: string;
+  bodyAndEmotion: string;
+  teacherSupport: string;
+  homeConnection: string;
+  provider: string;
+  model: string;
+  createdAt: number;
+}
+
 class OneulDB extends Dexie {
   dailyEntries!: Table<DailyEntryRecord, number>;
   parentReplies!: Table<ParentReplyRecord, number>;
   playJournals!: Table<PlayJournalRecord, number>;
+  growthReports!: Table<GrowthReportRecord, number>;
 
   constructor() {
     super("oneul-db");
@@ -66,6 +87,13 @@ class OneulDB extends Dexie {
       dailyEntries: "++id, kidId, kidName, date, docType, createdAt, [kidId+date]",
       parentReplies: "++id, date, childName, situation, createdAt",
       playJournals: "++id, date, ageBand, createdAt",
+    });
+    this.version(2).stores({
+      // v1 tables stay as-is; v2 adds growthReports.
+      dailyEntries: "++id, kidId, kidName, date, docType, createdAt, [kidId+date]",
+      parentReplies: "++id, date, childName, situation, createdAt",
+      playJournals: "++id, date, ageBand, createdAt",
+      growthReports: "++id, kidId, kidName, periodFrom, periodTo, createdAt",
     });
   }
 }
@@ -101,6 +129,10 @@ export async function savePlayJournal(record: PlayJournalRecord) {
   await getDb().playJournals.add(record);
 }
 
+export async function saveGrowthReport(record: GrowthReportRecord): Promise<number> {
+  return getDb().growthReports.add(record);
+}
+
 export async function listParentReplies(limit = 50): Promise<ParentReplyRecord[]> {
   const rows = await getDb()
     .parentReplies.orderBy("createdAt")
@@ -125,6 +157,32 @@ export async function listPlayJournals(limit = 50): Promise<PlayJournalRecord[]>
 
 export async function deletePlayJournal(id: number): Promise<void> {
   await getDb().playJournals.delete(id);
+}
+
+export async function listGrowthReports(opts?: {
+  kidId?: string;
+  limit?: number;
+}): Promise<GrowthReportRecord[]> {
+  const limit = opts?.limit ?? 50;
+  const db = getDb();
+  if (opts?.kidId) {
+    const rows = await db.growthReports
+      .where("kidId")
+      .equals(opts.kidId)
+      .reverse()
+      .sortBy("createdAt");
+    return rows.slice(0, limit);
+  }
+  const rows = await db.growthReports
+    .orderBy("createdAt")
+    .reverse()
+    .limit(limit)
+    .toArray();
+  return rows;
+}
+
+export async function deleteGrowthReport(id: number): Promise<void> {
+  await getDb().growthReports.delete(id);
 }
 
 export async function countKidEntries(kidId: string): Promise<number> {
@@ -180,28 +238,31 @@ export interface CountSummary {
   dailyEntries: number;
   parentReplies: number;
   playJournals: number;
+  growthReports: number;
 }
 
 export async function getCounts(): Promise<CountSummary> {
   const db = getDb();
-  const [d, p, pl] = await Promise.all([
+  const [d, p, pl, g] = await Promise.all([
     db.dailyEntries.count(),
     db.parentReplies.count(),
     db.playJournals.count(),
+    db.growthReports.count(),
   ]);
-  return { dailyEntries: d, parentReplies: p, playJournals: pl };
+  return { dailyEntries: d, parentReplies: p, playJournals: pl, growthReports: g };
 }
 
 export async function clearAllData(): Promise<void> {
   const db = getDb();
   await db.transaction(
     "rw",
-    [db.dailyEntries, db.parentReplies, db.playJournals],
+    [db.dailyEntries, db.parentReplies, db.playJournals, db.growthReports],
     async () => {
       await Promise.all([
         db.dailyEntries.clear(),
         db.parentReplies.clear(),
         db.playJournals.clear(),
+        db.growthReports.clear(),
       ]);
     },
   );
@@ -217,6 +278,7 @@ export interface BackupBundle {
     dailyEntries: DailyEntryRecord[];
     parentReplies: ParentReplyRecord[];
     playJournals: PlayJournalRecord[];
+    growthReports?: GrowthReportRecord[];
   };
 }
 
@@ -226,11 +288,13 @@ export async function exportAll(opts?: {
   includePhotos?: boolean;
 }): Promise<BackupBundle> {
   const db = getDb();
-  const [dailyEntries, parentReplies, playJournalsRaw] = await Promise.all([
-    db.dailyEntries.toArray(),
-    db.parentReplies.toArray(),
-    db.playJournals.toArray(),
-  ]);
+  const [dailyEntries, parentReplies, playJournalsRaw, growthReports] =
+    await Promise.all([
+      db.dailyEntries.toArray(),
+      db.parentReplies.toArray(),
+      db.playJournals.toArray(),
+      db.growthReports.toArray(),
+    ]);
   const playJournals = opts?.includePhotos
     ? playJournalsRaw
     : playJournalsRaw.map(({ photoThumbs: _omit, ...rest }) => rest);
@@ -245,6 +309,7 @@ export async function exportAll(opts?: {
       dailyEntries,
       parentReplies,
       playJournals,
+      growthReports,
     },
   };
 }
@@ -257,7 +322,9 @@ export async function importAll(
     throw new Error("백업 파일이 올바르지 않습니다.");
   }
   const b = bundle as Partial<BackupBundle>;
-  if (b.appVersion !== DB_VERSION) {
+  // Accept v1 (no growthReports) and current v2 bundles. Newer formats
+  // we don't yet understand are rejected.
+  if (b.appVersion !== 1 && b.appVersion !== DB_VERSION) {
     throw new Error(
       `지원하지 않는 백업 버전입니다 (파일: ${b.appVersion ?? "?"}, 앱: ${DB_VERSION})`,
     );
@@ -272,21 +339,24 @@ export async function importAll(
   const dailyEntries = (b.dbContent?.dailyEntries ?? []).map(cleanRecord);
   const parentReplies = (b.dbContent?.parentReplies ?? []).map(cleanRecord);
   const playJournals = (b.dbContent?.playJournals ?? []).map(cleanRecord);
+  const growthReports = (b.dbContent?.growthReports ?? []).map(cleanRecord);
 
   await db.transaction(
     "rw",
-    [db.dailyEntries, db.parentReplies, db.playJournals],
+    [db.dailyEntries, db.parentReplies, db.playJournals, db.growthReports],
     async () => {
       if (mode === "replace") {
         await Promise.all([
           db.dailyEntries.clear(),
           db.parentReplies.clear(),
           db.playJournals.clear(),
+          db.growthReports.clear(),
         ]);
       }
       await db.dailyEntries.bulkAdd(dailyEntries as DailyEntryRecord[]);
       await db.parentReplies.bulkAdd(parentReplies as ParentReplyRecord[]);
       await db.playJournals.bulkAdd(playJournals as PlayJournalRecord[]);
+      await db.growthReports.bulkAdd(growthReports as GrowthReportRecord[]);
     },
   );
 
@@ -299,6 +369,7 @@ export async function importAll(
       dailyEntries: dailyEntries.length,
       parentReplies: parentReplies.length,
       playJournals: playJournals.length,
+      growthReports: growthReports.length,
     },
   };
 }

@@ -22,7 +22,12 @@ export function DataSection() {
     try {
       setCounts(await getCounts());
     } catch {
-      setCounts({ dailyEntries: 0, parentReplies: 0, playJournals: 0 });
+      setCounts({
+        dailyEntries: 0,
+        parentReplies: 0,
+        playJournals: 0,
+        growthReports: 0,
+      });
     }
   }
 
@@ -65,7 +70,7 @@ export function DataSection() {
       await refresh();
       flash(
         "ok",
-        `${mode === "replace" ? "덮어쓰기" : "병합"} 완료 — 알림장 ${result.imported.dailyEntries}건, 학부모 답변 ${result.imported.parentReplies}건, 놀이기록 ${result.imported.playJournals}건 가져옴`,
+        `${mode === "replace" ? "덮어쓰기" : "병합"} 완료 — 알림장 ${result.imported.dailyEntries}건, 학부모 답변 ${result.imported.parentReplies}건, 놀이기록 ${result.imported.playJournals}건, 성장 리포트 ${result.imported.growthReports}건 가져옴`,
       );
     } catch (e) {
       flash("err", e instanceof Error ? e.message : "가져오기 실패");
@@ -115,7 +120,7 @@ export function DataSection() {
       </div>
 
       {counts && (
-        <div className="grid grid-cols-3 gap-2 text-center bg-cream-100 rounded-2xl p-4 border border-warm-100">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center bg-cream-100 rounded-2xl p-4 border border-warm-100">
           <div>
             <div className="text-2xl font-semibold text-ink tabular-nums">
               {counts.dailyEntries}
@@ -133,6 +138,12 @@ export function DataSection() {
               {counts.playJournals}
             </div>
             <div className="text-xs text-ink-muted mt-1">놀이기록</div>
+          </div>
+          <div>
+            <div className="text-2xl font-semibold text-ink tabular-nums">
+              {counts.growthReports}
+            </div>
+            <div className="text-xs text-ink-muted mt-1">성장 리포트</div>
           </div>
         </div>
       )}

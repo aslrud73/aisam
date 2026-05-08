@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getAuthHeaders } from "../lib/settings";
+import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
 import {
   listKidsWithEntries,
   getEntriesInRange,
+  saveGrowthReport,
+  listGrowthReports,
+  deleteGrowthReport,
   type KidSummary,
   type DailyEntryRecord,
+  type GrowthReportRecord,
 } from "../lib/db";
+import { HistorySection, type HistoryItem } from "../components/HistorySection";
 
 interface Report {
   intro: string;
@@ -151,6 +156,7 @@ export default function ReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [openEntryId, setOpenEntryId] = useState<number | null>(null);
+  const [historyVersion, setHistoryVersion] = useState(0);
 
   useEffect(() => {
     listKidsWithEntries()
@@ -209,6 +215,24 @@ export default function ReportsPage() {
       }
       const data: { report: Report } = await res.json();
       setReport(data.report);
+
+      const settings = loadSettings();
+      saveGrowthReport({
+        kidId: selectedKid.kidId,
+        kidName: selectedKid.kidName,
+        periodLabel: range.label,
+        periodFrom: range.from,
+        periodTo: range.to,
+        entryCount: entries.length,
+        ...data.report,
+        provider: settings?.provider ?? "unknown",
+        model: settings?.model ?? "unknown",
+        createdAt: Date.now(),
+      })
+        .then(() => setHistoryVersion((v) => v + 1))
+        .catch(() => {
+          // Don't surface DB errors — generation already succeeded.
+        });
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {
@@ -518,6 +542,41 @@ export default function ReportsPage() {
               </div>
             </section>
           )}
+
+          <HistorySection
+            key={`growth-history-${historyVersion}`}
+            title="저장된 성장 리포트"
+            emptyMessage="아직 저장된 성장 리포트가 없어요. 위에서 리포트를 한 번 생성하면 이곳에 자동으로 쌓입니다."
+            load={async () => {
+              const rows: GrowthReportRecord[] = await listGrowthReports({
+                limit: 50,
+              });
+              return rows
+                .filter(
+                  (r): r is GrowthReportRecord & { id: number } =>
+                    r.id !== undefined,
+                )
+                .map<HistoryItem>((r) => ({
+                  id: r.id,
+                  createdAt: r.createdAt,
+                  meta: [r.kidName, r.periodLabel, `누적 ${r.entryCount}건`],
+                  title: `${r.kidName} · ${r.periodLabel} 성장 리포트`,
+                  preview: r.intro.replace(/\s+/g, " ").slice(0, 80),
+                  detail: [
+                    { label: "인사말", text: r.intro },
+                    { label: "관심 놀이", text: r.interests },
+                    { label: "또래 관계의 변화", text: r.peerRelations },
+                    { label: "언어 표현 특징", text: r.language },
+                    { label: "신체 활동과 정서 표현", text: r.bodyAndEmotion },
+                    { label: "교사의 지원 내용", text: r.teacherSupport },
+                    { label: "가정 연계 제안", text: r.homeConnection },
+                  ],
+                }));
+            }}
+            onDelete={async (id) => {
+              await deleteGrowthReport(id);
+            }}
+          />
         </>
       )}
     </main>
