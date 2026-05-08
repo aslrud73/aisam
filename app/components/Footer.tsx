@@ -1,6 +1,6 @@
 export function Footer() {
   return (
-    <footer className="border-t border-warm-100 mt-16 py-8 px-5">
+    <footer className="border-t border-warm-100 mt-16 pt-8 pb-28 lg:pb-8 px-5">
       <div
         className="max-w-5xl mx-auto text-center space-y-2"
         style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
