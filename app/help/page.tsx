@@ -322,7 +322,7 @@ export default function HelpPage() {
   return (
     <main className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
       <div className="flex items-start gap-3">
-        <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-terracotta-50 text-terracotta-600 shrink-0">
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-coral-50 text-coral-600 shrink-0">
           <Icon name="book" size={20} strokeWidth={1.7} />
         </span>
         <div>
@@ -344,7 +344,7 @@ export default function HelpPage() {
           >
             <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between gap-3">
               <span className="inline-flex items-center gap-2.5 min-w-0">
-                <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-terracotta-50 text-terracotta-600 shrink-0">
+                <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-coral-50 text-coral-600 shrink-0">
                   <Icon name={s.icon} size={18} strokeWidth={1.7} />
                 </span>
                 <span className="font-semibold text-ink truncate">{s.title}</span>
@@ -362,7 +362,7 @@ export default function HelpPage() {
 
       <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
         <h2 className="text-base sm:text-lg font-semibold text-ink mb-4 inline-flex items-center gap-2">
-          <span className="text-terracotta-500">
+          <span className="text-coral-500">
             <Icon name="info" size={18} strokeWidth={1.7} />
           </span>
           자주 묻는 질문
@@ -396,7 +396,7 @@ export default function HelpPage() {
         </div>
         <Link
           href="/settings"
-          className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl text-sm font-medium shadow-sm hover:shadow"
+          className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-coral-500 hover:bg-coral-600 text-white rounded-xl text-sm font-medium shadow-sm hover:shadow"
         >
           설정으로 가기
           <Icon name="link" size={14} strokeWidth={2} />

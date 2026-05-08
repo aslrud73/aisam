@@ -123,7 +123,7 @@ export default function SettingsPage() {
   return (
     <main className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
       <div className="flex items-start gap-3">
-        <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-terracotta-50 text-terracotta-600 shrink-0">
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-coral-50 text-coral-600 shrink-0">
           <Icon name="settings" size={20} strokeWidth={1.7} />
         </span>
         <div>
@@ -139,7 +139,7 @@ export default function SettingsPage() {
       <details className="bg-cream-100 border border-warm-100 rounded-2xl shadow-card group">
         <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2.5">
-            <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-paper text-terracotta-600">
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-paper text-coral-600">
               <Icon name="info" size={18} strokeWidth={1.7} />
             </span>
             <span className="font-semibold text-ink">
@@ -204,7 +204,7 @@ export default function SettingsPage() {
                 onClick={() => changeProvider(p)}
                 className={`px-4 py-3 rounded-xl border text-left transition ${
                   active
-                    ? "bg-terracotta-500 text-white border-terracotta-500 shadow-sm"
+                    ? "bg-coral-500 text-white border-coral-500 shadow-sm"
                     : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                 }`}
               >
@@ -229,7 +229,7 @@ export default function SettingsPage() {
                 key={c.id}
                 className={`flex items-center gap-3 px-3.5 py-3 rounded-xl border cursor-pointer transition ${
                   active
-                    ? "border-terracotta-300 bg-cream-100"
+                    ? "border-coral-300 bg-cream-100"
                     : "border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                 }`}
               >
@@ -239,7 +239,7 @@ export default function SettingsPage() {
                   value={c.id}
                   checked={active}
                   onChange={() => setModel(c.id)}
-                  className="accent-terracotta-500 w-4 h-4"
+                  className="accent-coral-500 w-4 h-4"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm text-ink">{c.label}</div>
@@ -260,7 +260,7 @@ export default function SettingsPage() {
             value={model}
             onChange={(e) => setModel(e.target.value)}
             placeholder={DEFAULT_MODELS[provider]}
-            className="mt-2 w-full px-3.5 py-2.5 text-sm rounded-xl border border-warm-200 bg-paper focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none font-mono"
+            className="mt-2 w-full px-3.5 py-2.5 text-sm rounded-xl border border-warm-200 bg-paper focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none font-mono"
           />
           <p className="text-xs text-ink-muted mt-1.5">
             새로운 모델이 출시되었을 때 직접 입력해서 사용할 수 있어요.
@@ -272,7 +272,7 @@ export default function SettingsPage() {
       <Step icon="key" step={3} title="API 키 등록">
         <div className="bg-cream-100 rounded-2xl p-4 mb-4 border border-warm-100">
           <p className="text-sm font-semibold text-ink mb-2 inline-flex items-center gap-1.5">
-            <span className="text-terracotta-600">
+            <span className="text-coral-600">
               <Icon name="info" size={14} strokeWidth={1.8} />
             </span>
             {PROVIDER_LABELS[provider]} 키 받는 법
@@ -289,7 +289,7 @@ export default function SettingsPage() {
             href={docs.signupUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-terracotta-700 hover:text-terracotta-800"
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-coral-700 hover:text-coral-800"
           >
             <Icon name="link" size={14} strokeWidth={2} />
             {PROVIDER_LABELS[provider]} 키 발급 페이지 열기
@@ -302,7 +302,7 @@ export default function SettingsPage() {
             value={showKey ? apiKey : masked}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder={docs.keyHint}
-            className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm font-mono focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+            className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm font-mono focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none"
             autoComplete="off"
           />
           <button
@@ -318,7 +318,7 @@ export default function SettingsPage() {
         <button
           onClick={save}
           disabled={!apiKey.trim()}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-coral-500 hover:bg-coral-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
         >
           <Icon name="check" size={16} strokeWidth={2} />
           저장
@@ -386,7 +386,7 @@ function Step({
   return (
     <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4">
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-coral-50 text-coral-700 text-sm font-semibold tabular-nums">
           {step}
         </span>
         <span className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-ink">

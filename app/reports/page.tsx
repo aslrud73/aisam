@@ -375,7 +375,7 @@ export default function ReportsPage() {
                     onClick={() => setSelectedKidId(k.kidId)}
                     className={`px-3.5 py-2 rounded-xl border text-sm transition ${
                       active
-                        ? "bg-sage-500 text-white border-sage-500 shadow-sm"
+                        ? "bg-navy-500 text-white border-navy-500 shadow-sm"
                         : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                     }`}
                   >
@@ -403,7 +403,7 @@ export default function ReportsPage() {
                     onClick={() => setPresetId(p.id)}
                     className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                       active
-                        ? "bg-terracotta-500 text-white border-terracotta-500 shadow-sm"
+                        ? "bg-navy-500 text-white border-navy-500 shadow-sm"
                         : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                     }`}
                   >
@@ -422,7 +422,7 @@ export default function ReportsPage() {
                   onChange={(e) =>
                     setCustomRange((p) => ({ ...p, from: e.target.value }))
                   }
-                  className="px-3 py-1.5 rounded-lg border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+                  className="px-3 py-1.5 rounded-lg border border-warm-200 bg-paper text-sm focus:border-navy-400 focus:ring-2 focus:ring-navy-100 focus:outline-none"
                 />
                 <span className="text-ink-muted">~</span>
                 <input
@@ -431,7 +431,7 @@ export default function ReportsPage() {
                   onChange={(e) =>
                     setCustomRange((p) => ({ ...p, to: e.target.value }))
                   }
-                  className="px-3 py-1.5 rounded-lg border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+                  className="px-3 py-1.5 rounded-lg border border-warm-200 bg-paper text-sm focus:border-navy-400 focus:ring-2 focus:ring-navy-100 focus:outline-none"
                 />
               </div>
             )}
@@ -442,7 +442,7 @@ export default function ReportsPage() {
                 : "기간을 다시 확인해 주세요."}
             </div>
             {range && entries.length === 0 && (
-              <p className="text-xs text-terracotta-700 bg-terracotta-50 border border-terracotta-100 px-3 py-2 rounded-xl mt-3">
+              <p className="text-xs text-navy-700 bg-navy-50 border border-navy-100 px-3 py-2 rounded-xl mt-3">
                 선택한 기간에 이 아이의 기록이 없어요. 다른 기간을 선택해 주세요.
               </p>
             )}
@@ -458,7 +458,7 @@ export default function ReportsPage() {
                     aria-pressed={includeAlrim}
                     className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                       includeAlrim
-                        ? "bg-terracotta-50 text-terracotta-700 border-terracotta-200 shadow-sm"
+                        ? "bg-navy-50 text-navy-700 border-navy-200 shadow-sm"
                         : "bg-paper text-ink-muted border-warm-200 hover:border-warm-300"
                     }`}
                   >
@@ -469,7 +469,7 @@ export default function ReportsPage() {
                     aria-pressed={includeGwanchal}
                     className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                       includeGwanchal
-                        ? "bg-sage-50 text-sage-600 border-sage-200 shadow-sm"
+                        ? "bg-navy-50 text-navy-600 border-navy-200 shadow-sm"
                         : "bg-paper text-ink-muted border-warm-200 hover:border-warm-300"
                     }`}
                   >
@@ -487,12 +487,12 @@ export default function ReportsPage() {
             <details className="bg-paper rounded-2xl border border-warm-100 shadow-card group" open>
               <summary className="cursor-pointer list-none px-6 py-4 flex items-center justify-between gap-3">
                 <span className="inline-flex items-center gap-2.5 min-w-0">
-                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-terracotta-50 text-terracotta-600 shrink-0">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-navy-50 text-navy-600 shrink-0">
                     <Icon name="note" size={18} strokeWidth={1.7} />
                   </span>
                   <span className="font-semibold text-ink truncate">
                     이 기간 누적 기록 {visibleEntries.length}건 ·{" "}
-                    <span className="text-terracotta-600">
+                    <span className="text-navy-600">
                       리포트 반영 {reportEntries.length}건
                     </span>
                   </span>
@@ -528,7 +528,7 @@ export default function ReportsPage() {
                                 checked={included}
                                 onChange={() => id !== undefined && toggleEntryIncluded(id)}
                                 disabled={id === undefined}
-                                className="mt-1.5 accent-terracotta-500 w-4 h-4 shrink-0"
+                                className="mt-1.5 accent-navy-500 w-4 h-4 shrink-0"
                                 aria-label={
                                   included
                                     ? "이 기록 리포트에서 빼기"
@@ -552,8 +552,8 @@ export default function ReportsPage() {
                                     <span
                                       className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10.5px] ${
                                         e.docType === "gwanchal"
-                                          ? "bg-sage-50 border-sage-100 text-sage-600"
-                                          : "bg-terracotta-50 border-terracotta-100 text-terracotta-700"
+                                          ? "bg-navy-50 border-navy-100 text-navy-600"
+                                          : "bg-navy-50 border-navy-100 text-navy-700"
                                       }`}
                                     >
                                       {e.docType === "gwanchal" ? "관찰일지" : "알림장"}
@@ -603,7 +603,7 @@ export default function ReportsPage() {
                                     )}
                                   </div>
                                 )}
-                                <p className="text-sm leading-relaxed text-ink-soft whitespace-pre-wrap bg-cream-100 border-l-2 border-terracotta-200 rounded-xl px-3 py-2">
+                                <p className="text-sm leading-relaxed text-ink-soft whitespace-pre-wrap bg-cream-100 border-l-2 border-navy-200 rounded-xl px-3 py-2">
                                   {e.text}
                                 </p>
                                 {id !== undefined && (
@@ -639,7 +639,7 @@ export default function ReportsPage() {
             <button
               onClick={generate}
               disabled={generating || reportEntries.length === 0 || !range}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-navy-500 hover:bg-navy-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
             >
               {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
               {generating
@@ -669,7 +669,7 @@ export default function ReportsPage() {
             <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
-                  <span className="text-terracotta-500">
+                  <span className="text-navy-500">
                     <Icon name="check" size={18} strokeWidth={2} />
                   </span>
                   {selectedKid?.kidName} · {range?.label} 성장 리포트
@@ -695,14 +695,14 @@ export default function ReportsPage() {
               <div className="space-y-4">
                 {SECTIONS.map(({ key, label }) => (
                   <div key={key}>
-                    <h3 className="text-xs font-semibold text-terracotta-700 mb-1.5 tracking-wide">
+                    <h3 className="text-xs font-semibold text-navy-700 mb-1.5 tracking-wide">
                       {label}
                     </h3>
                     <textarea
                       value={report[key]}
                       onChange={(e) => updateSection(key, e.target.value)}
                       rows={Math.max(2, report[key].split("\n").length + 1)}
-                      className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-terracotta-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
+                      className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-navy-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
                     />
                   </div>
                 ))}
@@ -729,7 +729,7 @@ export default function ReportsPage() {
                   aria-pressed={!showAllReports}
                   className={`px-2.5 py-1 rounded-md transition ${
                     !showAllReports
-                      ? "bg-terracotta-50 text-terracotta-700 font-medium"
+                      ? "bg-navy-50 text-navy-700 font-medium"
                       : "text-ink-muted hover:bg-warm-50"
                   }`}
                 >
@@ -740,7 +740,7 @@ export default function ReportsPage() {
                   aria-pressed={showAllReports}
                   className={`px-2.5 py-1 rounded-md transition ${
                     showAllReports
-                      ? "bg-terracotta-50 text-terracotta-700 font-medium"
+                      ? "bg-navy-50 text-navy-700 font-medium"
                       : "text-ink-muted hover:bg-warm-50"
                   }`}
                 >
@@ -801,7 +801,7 @@ function Step({
   return (
     <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4">
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-navy-50 text-navy-700 text-sm font-semibold tabular-nums">
           {step}
         </span>
         <span className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-ink">

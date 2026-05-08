@@ -646,7 +646,7 @@ export default function Page() {
             <input
               value={className}
               onChange={(e) => setClassName(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-warm-200 bg-paper w-28 text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+              className="px-3 py-2 rounded-xl border border-warm-200 bg-paper w-28 text-sm focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none"
             />
           </label>
         </div>
@@ -663,7 +663,7 @@ export default function Page() {
                 onClick={() => setDocType(d)}
                 className={`text-left px-4 py-3 rounded-xl transition ${
                   active
-                    ? "bg-terracotta-500 text-white shadow-sm"
+                    ? "bg-coral-500 text-white shadow-sm"
                     : "bg-transparent text-ink-soft hover:bg-warm-50"
                 }`}
               >
@@ -730,7 +730,7 @@ export default function Page() {
                     onClick={() => setEditMode((v) => !v)}
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border ${
                       editMode
-                        ? "bg-terracotta-500 text-white border-terracotta-500"
+                        ? "bg-coral-500 text-white border-coral-500"
                         : "text-ink-soft border-warm-200 hover:bg-warm-50"
                     }`}
                   >
@@ -814,14 +814,14 @@ export default function Page() {
                       }
                     }}
                     placeholder="이름 입력 후 Enter"
-                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none"
                   />
                   <button
                     onClick={() => {
                       addChild(newName);
                       setNewName("");
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl text-sm font-medium whitespace-nowrap shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-coral-500 hover:bg-coral-600 text-white rounded-xl text-sm font-medium whitespace-nowrap shadow-sm"
                   >
                     <Icon name="plus" size={14} strokeWidth={2.2} />
                     추가
@@ -838,7 +838,7 @@ export default function Page() {
                     onChange={(e) => setBulkInput(e.target.value)}
                     placeholder="이름들을 줄바꿈 또는 쉼표로 구분"
                     rows={3}
-                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none"
                   />
                   <button
                     onClick={addBulk}
@@ -933,7 +933,7 @@ export default function Page() {
             onChange={(e) => setTodayActivity(e.target.value)}
             placeholder={activityPlaceholder}
             rows={3}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none resize-none"
           />
           <p className="text-xs text-ink-muted mt-2.5">
             한 번 입력하면 모든 아이의 알림장에 자연스럽게 반영돼요.
@@ -1009,7 +1009,7 @@ export default function Page() {
           <button
             onClick={generate}
             disabled={generating || todayChildren.length === 0}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-coral-500 hover:bg-coral-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
           >
             {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
             {generating
@@ -1070,13 +1070,13 @@ export default function Page() {
                 return (
                   <div
                     key={c.id}
-                    className="rounded-2xl p-4 bg-cream-100 border-l-2 border-terracotta-300"
+                    className="rounded-2xl p-4 bg-cream-100 border-l-2 border-coral-300"
                   >
                     <div className="flex items-baseline justify-between mb-2">
                       <h3 className="font-semibold text-ink">{c.name}</h3>
                       <button
                         onClick={() => copy(c.id)}
-                        className="inline-flex items-center gap-1 text-xs px-2 py-1 text-ink-muted hover:text-terracotta-600"
+                        className="inline-flex items-center gap-1 text-xs px-2 py-1 text-ink-muted hover:text-coral-600"
                       >
                         <Icon name="copy" size={12} strokeWidth={1.8} />
                         {copiedId === c.id ? "복사됨" : "복사"}
@@ -1151,7 +1151,7 @@ function EditRosterRow({
           if (e.key === "Enter") handleSave();
           else if (e.key === "Escape") setDraft(child.name);
         }}
-        className="flex-1 min-w-[8rem] px-3 py-1.5 rounded-lg border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+        className="flex-1 min-w-[8rem] px-3 py-1.5 rounded-lg border border-warm-200 bg-paper text-sm focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none"
       />
       {last && (
         <span className="text-[11px] text-ink-muted tabular-nums whitespace-nowrap">
@@ -1233,14 +1233,14 @@ function ChildRow({
           onChange={(e) => onChange({ memo: e.target.value })}
           placeholder={placeholder}
           rows={2}
-          className="w-full px-3 py-2 text-sm rounded-xl border border-warm-200 bg-paper focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
+          className="w-full px-3 py-2 text-sm rounded-xl border border-warm-200 bg-paper focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none resize-none"
         />
       ) : (
         <input
           value={entry.memo}
           onChange={(e) => onChange({ memo: e.target.value })}
           placeholder={placeholder}
-          className="w-full px-3 py-2 text-sm rounded-xl border border-warm-200 bg-paper focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+          className="w-full px-3 py-2 text-sm rounded-xl border border-warm-200 bg-paper focus:border-coral-400 focus:ring-2 focus:ring-coral-100 focus:outline-none"
         />
       )}
     </div>
@@ -1261,7 +1261,7 @@ function StepHeader({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-3">
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-coral-50 text-coral-700 text-sm font-semibold tabular-nums">
           {step}
         </span>
         <h2 className="text-base sm:text-lg font-semibold text-ink">{title}</h2>

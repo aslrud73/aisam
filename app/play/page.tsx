@@ -234,7 +234,7 @@ export default function PlayPage() {
             handleFiles(e.dataTransfer.files);
           }}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-warm-200 hover:border-terracotta-300 rounded-2xl p-7 text-center cursor-pointer transition bg-cream-100"
+          className="border-2 border-dashed border-warm-200 hover:border-lavender-300 rounded-2xl p-7 text-center cursor-pointer transition bg-cream-100"
         >
           <input
             ref={fileInputRef}
@@ -247,7 +247,7 @@ export default function PlayPage() {
             }}
             className="hidden"
           />
-          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-paper text-terracotta-500 mb-2">
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-paper text-lavender-500 mb-2">
             <Icon name="camera" size={20} strokeWidth={1.7} />
           </span>
           <p className="text-sm text-ink-soft font-medium">
@@ -289,14 +289,14 @@ export default function PlayPage() {
           value={activityName}
           onChange={(e) => setActivityName(e.target.value)}
           placeholder="활동명 (예: 봄꽃 찍기 미술놀이)"
-          className="w-full px-3.5 py-2.5 mb-3 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+          className="w-full px-3.5 py-2.5 mb-3 rounded-xl border border-warm-200 bg-paper text-sm focus:border-lavender-400 focus:ring-2 focus:ring-lavender-100 focus:outline-none"
         />
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="예: 물감으로 봄꽃 찍기 놀이. 손가락, 스펀지, 면봉으로 표현. 한 아이가 도구를 바꿔가며 질감 차이를 비교하는 모습 보임."
           rows={4}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-lavender-400 focus:ring-2 focus:ring-lavender-100 focus:outline-none resize-none"
         />
       </Step>
 
@@ -310,7 +310,7 @@ export default function PlayPage() {
                 onClick={() => setAge(a.id)}
                 className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                   active
-                    ? "bg-terracotta-500 text-white border-terracotta-500 shadow-sm"
+                    ? "bg-lavender-500 text-white border-lavender-500 shadow-sm"
                     : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                 }`}
               >
@@ -325,7 +325,7 @@ export default function PlayPage() {
         <button
           onClick={generate}
           disabled={generating}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-lavender-500 hover:bg-lavender-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
         >
           {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
           {generating
@@ -353,7 +353,7 @@ export default function PlayPage() {
         <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
-              <span className="text-terracotta-500">
+              <span className="text-lavender-500">
                 <Icon name="check" size={18} strokeWidth={2} />
               </span>
               완성된 놀이기록
@@ -379,14 +379,14 @@ export default function PlayPage() {
           <div className="space-y-4">
             {SECTION_LABELS.map(({ key, label }) => (
               <div key={key}>
-                <h3 className="text-xs font-semibold text-terracotta-700 mb-1.5 tracking-wide">
+                <h3 className="text-xs font-semibold text-lavender-700 mb-1.5 tracking-wide">
                   {label}
                 </h3>
                 <textarea
                   value={journal[key]}
                   onChange={(e) => updateSection(key, e.target.value)}
                   rows={Math.max(2, journal[key].split("\n").length + 1)}
-                  className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-terracotta-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
+                  className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-lavender-300 rounded-2xl p-3.5 resize-none focus:outline-none text-ink-soft"
                 />
               </div>
             ))}
@@ -446,7 +446,7 @@ function Step({
   return (
     <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-lavender-50 text-lavender-700 text-sm font-semibold tabular-nums">
           {step}
         </span>
         <span className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-ink">
