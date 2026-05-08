@@ -390,9 +390,6 @@ function Step({
           {step}
         </span>
         <span className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-ink">
-          <span className="text-terracotta-500">
-            <Icon name={icon} size={18} strokeWidth={1.7} />
-          </span>
           {title}
         </span>
       </div>

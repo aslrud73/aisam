@@ -1264,12 +1264,7 @@ function StepHeader({
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
           {step}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="text-terracotta-500">
-            <Icon name={icon} size={18} strokeWidth={1.7} />
-          </span>
-          <h2 className="text-base sm:text-lg font-semibold text-ink">{title}</h2>
-        </div>
+        <h2 className="text-base sm:text-lg font-semibold text-ink">{title}</h2>
       </div>
       {right}
     </div>
