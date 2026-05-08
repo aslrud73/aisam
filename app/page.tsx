@@ -625,7 +625,7 @@ export default function Page() {
     <main className="min-h-screen pb-24" data-mode={docType}>
       <div className="max-w-4xl mx-auto px-5 pt-6 space-y-5">
         <SetupBanner />
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <span className="shrink-0">
               {docType === "alrim" ? (
