@@ -134,7 +134,7 @@ export default function ParentPage() {
           onChange={(e) => setParentMessage(e.target.value)}
           placeholder="예: 우리 아이가 어제부터 어린이집 가기 싫다고 자꾸 우는데, 혹시 친구랑 무슨 일 있었나요? 선생님이 잘 살펴봐 주시는 건지 걱정이 됩니다."
           rows={5}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none resize-none"
         />
       </Step>
 
@@ -148,7 +148,7 @@ export default function ParentPage() {
                 onClick={() => setSituation(s.id)}
                 className={`px-3 py-2.5 rounded-xl border text-left transition ${
                   active
-                    ? "bg-sage-500 text-white border-sage-500 shadow-sm"
+                    ? "bg-mustard-500 text-white border-mustard-500 shadow-sm"
                     : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                 }`}
               >
@@ -174,7 +174,7 @@ export default function ParentPage() {
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
               placeholder="예: 지우"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none"
             />
           </div>
           <div>
@@ -186,7 +186,7 @@ export default function ParentPage() {
               onChange={(e) => setExtraContext(e.target.value)}
               placeholder="예: 어제 점심 후 인형놀이 중 또래와 차례 다툼이 있었음. 교사가 중재하여 잘 마무리됨. 콧물도 살짝 있어 컨디션이 평소보다 떨어진 것으로 보임."
               rows={3}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-terracotta-400 focus:ring-2 focus:ring-terracotta-100 focus:outline-none resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none resize-none"
             />
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function ParentPage() {
                 onClick={() => setTone(t.id)}
                 className={`px-3.5 py-1.5 rounded-full border text-sm transition ${
                   active
-                    ? "bg-terracotta-500 text-white border-terracotta-500 shadow-sm"
+                    ? "bg-mustard-500 text-white border-mustard-500 shadow-sm"
                     : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
                 }`}
               >
@@ -217,7 +217,7 @@ export default function ParentPage() {
         <button
           onClick={generate}
           disabled={generating}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-mustard-500 hover:bg-mustard-600 text-white rounded-2xl font-semibold disabled:bg-warm-200 disabled:text-ink-faint disabled:cursor-not-allowed shadow-sm hover:shadow-md"
         >
           {!generating && <Icon name="sparkle" size={16} strokeWidth={2} />}
           {generating ? "AI가 답변을 다듬고 있어요..." : "답변 초안 만들기"}
@@ -243,7 +243,7 @@ export default function ParentPage() {
         <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
-              <span className="text-terracotta-500">
+              <span className="text-mustard-500">
                 <Icon name="check" size={18} strokeWidth={2} />
               </span>
               완성된 답변 초안
@@ -270,7 +270,7 @@ export default function ParentPage() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={Math.max(8, draft.split("\n").length + 2)}
-            className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-terracotta-300 rounded-2xl p-4 resize-none focus:outline-none text-ink-soft"
+            className="w-full text-sm leading-relaxed bg-cream-100 border-l-2 border-mustard-300 rounded-2xl p-4 resize-none focus:outline-none text-ink-soft"
           />
           <p className="text-xs text-ink-muted mt-3">
             내용은 직접 수정할 수 있어요. 복사 후 키즈노트·카카오톡·문자에
@@ -322,7 +322,7 @@ function Step({
   return (
     <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4">
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-terracotta-50 text-terracotta-700 text-sm font-semibold tabular-nums">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-mustard-50 text-mustard-700 text-sm font-semibold tabular-nums">
           {step}
         </span>
         <span className="inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-ink">
