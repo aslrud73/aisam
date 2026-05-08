@@ -430,8 +430,7 @@ export default function Page() {
             <>
               <div className="flex items-center justify-between gap-2 mb-3">
                 <p className="text-sm text-ink-soft leading-relaxed">
-                  오늘 기록할 아이를 클릭해서 선택하세요. 결석한 아이는 한 번 더
-                  눌러 빼시면 돼요.
+                  기본은 모두 출석 상태예요. 결석한 아이만 한 번 눌러서 해제하시면 돼요.
                 </p>
                 <div className="flex items-center gap-2 shrink-0 text-xs">
                   <button
@@ -452,33 +451,32 @@ export default function Page() {
                 {children.map((c) => {
                   const selected = selectedIds.has(c.id);
                   return (
-                    <span
+                    <div
                       key={c.id}
-                      className={`group inline-flex items-center gap-1.5 rounded-full text-sm border transition ${
-                        selected
-                          ? "bg-sage-50 border-sage-200 text-sage-600"
-                          : "bg-warm-50 border-warm-100 text-ink-faint"
-                      }`}
+                      className="relative group"
                     >
                       <button
                         onClick={() => toggleSelected(c.id)}
-                        className={`pl-3 pr-1.5 py-1.5 rounded-l-full font-medium ${
-                          selected ? "" : "line-through decoration-1"
-                        }`}
+                        aria-pressed={selected}
                         aria-label={
-                          selected ? `${c.name} 출석 해제` : `${c.name} 출석`
+                          selected ? `${c.name} 결석 처리` : `${c.name} 출석 처리`
                         }
+                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition shadow-sm ${
+                          selected
+                            ? "bg-sage-500 text-white border-sage-500 hover:bg-sage-600"
+                            : "bg-paper text-ink-muted border-warm-200 hover:bg-warm-50 hover:border-warm-300"
+                        }`}
                       >
                         {c.name}
                       </button>
                       <button
                         onClick={() => removeChild(c.id)}
-                        className="pr-2.5 text-ink-faint hover:text-red-500 inline-flex items-center"
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-paper border border-warm-200 text-ink-faint hover:text-red-500 hover:border-red-200 inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition shadow-sm"
                         aria-label={`${c.name} 명단에서 삭제`}
                       >
-                        <Icon name="x" size={12} strokeWidth={2.2} />
+                        <Icon name="x" size={10} strokeWidth={2.4} />
                       </button>
-                    </span>
+                    </div>
                   );
                 })}
               </div>

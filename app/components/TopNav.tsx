@@ -10,6 +10,7 @@ const TABS: { href: string; label: string; icon: IconName }[] = [
   { href: "/play", label: "놀이기록", icon: "camera" },
   { href: "/reports", label: "월간 리포트", icon: "chart" },
   { href: "/settings", label: "설정", icon: "settings" },
+  { href: "/help", label: "사용 설명서", icon: "book" },
 ];
 
 export function TopNav() {
@@ -23,7 +24,7 @@ export function TopNav() {
           </span>
           <div className="leading-tight">
             <div className="text-[19px] font-extrabold text-ink group-hover:text-terracotta-600 transition tracking-tight">
-              오늘알림장
+              쌤chat
             </div>
             <div className="text-[10.5px] text-ink-muted hidden sm:block -mt-0.5">
               선생님의 1시간을 돌려드립니다

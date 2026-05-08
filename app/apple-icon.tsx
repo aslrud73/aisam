@@ -15,12 +15,12 @@ export default function AppleIcon() {
           justifyContent: "center",
           background: "#C56B4A",
           color: "#FBF7F0",
-          fontSize: 86,
+          fontSize: 104,
           fontWeight: 800,
           letterSpacing: "-0.04em",
         }}
       >
-        오늘
+        쌤
       </div>
     ),
     { ...size },

@@ -20,7 +20,8 @@ export type IconName =
   | "plus"
   | "x"
   | "copy"
-  | "shield";
+  | "shield"
+  | "book";
 
 const COMMON: SVGProps<SVGSVGElement> = {
   width: 20,
@@ -156,6 +157,13 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <path d="M12 3 4 6v6c0 4.5 3.4 8.4 8 9 4.6-.6 8-4.5 8-9V6l-8-3Z" />
       <path d="M9 12l2 2 4-4" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Z" />
+      <path d="M5 17a3 3 0 0 1 3-3h10" />
+      <path d="M9 8h6M9 11h4" />
     </>
   ),
 };

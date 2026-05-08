@@ -70,6 +70,6 @@ export const MODEL_CHOICES: Record<ProviderId, ModelChoice[]> = {
 
 export const PROVIDER_LABELS: Record<ProviderId, string> = {
   claude: "Claude (클로드)",
-  openai: "OpenAI (오픈에이아이)",
+  openai: "OpenAI (쳇지피티)",
   gemini: "Gemini (제미나이)",
 };

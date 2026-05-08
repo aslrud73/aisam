@@ -15,13 +15,13 @@ export default function Icon() {
           justifyContent: "center",
           background: "#C56B4A",
           color: "#FBF7F0",
-          fontSize: 92,
+          fontSize: 110,
           fontWeight: 800,
           letterSpacing: "-0.04em",
           borderRadius: 32,
         }}
       >
-        오늘
+        쌤
       </div>
     ),
     { ...size },
