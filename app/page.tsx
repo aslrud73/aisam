@@ -622,7 +622,7 @@ export default function Page() {
 
   return (
     <main className="min-h-screen pb-24">
-      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-5">
+      <div className="max-w-4xl mx-auto px-5 pt-6 space-y-5">
         <SetupBanner />
         <div className="flex items-center justify-between">
           <div>
@@ -642,7 +642,7 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-5 pt-6 space-y-6">
         <div className="bg-paper rounded-2xl border border-warm-100 p-1.5 grid grid-cols-2 gap-1 shadow-card">
           {(Object.keys(DOC_LABELS) as DocType[]).map((d) => {
             const active = docType === d;

@@ -320,7 +320,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
 
 export default function HelpPage() {
   return (
-    <main className="max-w-3xl mx-auto px-5 py-8 pb-24 space-y-5">
+    <main className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
       <div className="flex items-start gap-3">
         <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-terracotta-50 text-terracotta-600 shrink-0">
           <Icon name="book" size={20} strokeWidth={1.7} />
