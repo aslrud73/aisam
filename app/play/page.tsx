@@ -3,6 +3,9 @@
 import { useState, useRef } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
+import { PageHeader } from "../components/PageHeader";
+import { Card, StepHeader } from "../components/Card";
+import { PlayIllust, DoneIllust } from "../components/illustrations";
 import { savePlayJournal, todayISO } from "../lib/db";
 
 const AGE_OPTIONS = [
@@ -15,7 +18,7 @@ const AGE_OPTIONS = [
 ];
 
 const MAX_IMAGES = 5;
-const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB raw — compressed before upload
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
 const MAX_LONG_EDGE = 1280;
 const JPEG_QUALITY = 0.85;
 
@@ -69,7 +72,6 @@ async function compressImage(file: File): Promise<{
   bitmap.close();
 
   const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
-  // Estimate bytes from base64 length
   const base64 = dataUrl.split(",")[1] ?? "";
   const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
   const size = Math.floor((base64.length * 3) / 4) - padding;
@@ -186,176 +188,170 @@ export default function PlayPage() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-5 py-8 pb-24 space-y-6">
-      <SetupBanner />
-      <div>
-        <h1 className="font-display text-2xl text-stone-800">놀이기록 도우미</h1>
-        <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-          놀이 사진과 짧은 메모만 올리면, AI가 누리과정 영역과 연결된 전문
-          놀이기록을 자동으로 만들어 드려요.
-        </p>
-      </div>
+    <main className="pb-28 lg:pb-12">
+      <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8 pt-5 md:pt-7 space-y-5 md:space-y-6">
+        <SetupBanner />
+        <PageHeader
+          title="놀이기록 도우미"
+          description="놀이 사진과 짧은 메모만 올리면, AI가 누리과정 영역과 연결된 전문 놀이기록을 자동으로 만들어 드려요."
+          accent="lavender"
+          illustration={<PlayIllust />}
+        />
 
-      {/* 1. 사진 첨부 */}
-      <section className="bg-white rounded-2xl border border-stone-200 p-6">
-        <label className="font-display text-lg text-stone-800 mb-3 block">
-          <span className="text-terracotta mr-2">1</span>놀이 사진
-          <span className="text-xs text-stone-500 font-sans ml-2">
-            (최대 {MAX_IMAGES}장, 자동으로 1280px·JPEG로 압축됩니다)
-          </span>
-        </label>
-
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            handleFiles(e.dataTransfer.files);
-          }}
-          onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-stone-300 hover:border-terracotta rounded-xl p-6 text-center cursor-pointer transition bg-cream/30"
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              handleFiles(e.target.files);
-              e.target.value = "";
-            }}
-            className="hidden"
+        <Card>
+          <StepHeader
+            step={1}
+            title="놀이 사진"
+            accent="lavender"
+            hint={`최대 ${MAX_IMAGES}장 · 자동으로 1280px·JPEG로 압축됩니다`}
           />
-          <p className="text-sm text-stone-600">
-            클릭하거나 사진을 끌어다 놓으세요
-          </p>
-          <p className="text-xs text-stone-400 mt-1">
-            아이 얼굴이 식별되지 않는 사진을 권장해요 (놀이 장면·작품·활동 위주)
-          </p>
-        </div>
-
-        {images.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-4">
-            {images.map((img) => (
-              <div
-                key={img.id}
-                className="relative group aspect-square rounded-lg overflow-hidden border border-stone-200"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.dataUrl}
-                  alt={img.name}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  onClick={() => removeImage(img.id)}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                  aria-label="사진 삭제"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleFiles(e.dataTransfer.files);
+            }}
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-line-medium hover:border-lavender rounded-xl p-6 text-center cursor-pointer transition-colors duration-150 bg-lavender-bg/30"
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                handleFiles(e.target.files);
+                e.target.value = "";
+              }}
+              className="hidden"
+            />
+            <p className="text-sm text-ink-secondary font-medium">
+              클릭하거나 사진을 끌어다 놓으세요
+            </p>
+            <p className="text-xs text-ink-tertiary mt-1 leading-relaxed">
+              아이 얼굴이 식별되지 않는 사진을 권장해요 (놀이 장면·작품·활동 위주)
+            </p>
           </div>
-        )}
-      </section>
 
-      {/* 2. 메모 */}
-      <section className="bg-white rounded-2xl border border-stone-200 p-6">
-        <label className="font-display text-lg text-stone-800 mb-3 block">
-          <span className="text-terracotta mr-2">2</span>놀이 메모 (선택)
-        </label>
-        <input
-          value={activityName}
-          onChange={(e) => setActivityName(e.target.value)}
-          placeholder="활동명 (예: 봄꽃 찍기 미술놀이)"
-          className="w-full px-3 py-2 mb-3 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm"
-        />
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="예: 물감으로 봄꽃 찍기 놀이. 손가락, 스펀지, 면봉으로 표현. 한 아이가 도구를 바꿔가며 질감 차이를 비교하는 모습 보임."
-          rows={4}
-          className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm leading-relaxed"
-        />
-      </section>
+          {images.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-4">
+              {images.map((img) => (
+                <div
+                  key={img.id}
+                  className="relative group aspect-square rounded-lg overflow-hidden border border-line-light"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.dataUrl}
+                    alt={img.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => removeImage(img.id)}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    aria-label="사진 삭제"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
 
-      {/* 3. 연령 */}
-      <section className="bg-white rounded-2xl border border-stone-200 p-6">
-        <label className="font-display text-lg text-stone-800 mb-3 block">
-          <span className="text-terracotta mr-2">3</span>연령
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {AGE_OPTIONS.map((a) => {
-            const active = age === a.id;
-            return (
-              <button
-                key={a.id}
-                onClick={() => setAge(a.id)}
-                className={`px-3 py-1.5 rounded-full border text-sm transition ${
-                  active
-                    ? "bg-terracotta text-white border-terracotta"
-                    : "bg-white text-stone-700 border-stone-300 hover:border-stone-400"
-                }`}
-              >
-                {a.label}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+        <Card>
+          <StepHeader step={2} title="놀이 메모 (선택)" accent="lavender" />
+          <input
+            value={activityName}
+            onChange={(e) => setActivityName(e.target.value)}
+            placeholder="활동명 (예: 봄꽃 찍기 미술놀이)"
+            className="w-full px-3 py-2 mb-3 rounded-lg border border-line-medium focus:border-lavender focus:outline-none focus:ring-3 focus:ring-lavender-bg text-sm"
+          />
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="예: 물감으로 봄꽃 찍기 놀이. 손가락, 스펀지, 면봉으로 표현. 한 아이가 도구를 바꿔가며 질감 차이를 비교하는 모습 보임."
+            rows={4}
+            className="w-full px-3 py-2 rounded-lg border border-line-medium focus:border-lavender focus:outline-none focus:ring-3 focus:ring-lavender-bg text-sm leading-relaxed"
+          />
+        </Card>
 
-      {/* Generate */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6">
-        <button
-          onClick={generate}
-          disabled={generating}
-          className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
-        >
-          {generating
-            ? "AI가 사진을 보며 놀이기록을 작성하고 있어요..."
-            : "놀이기록 생성하기"}
-        </button>
-        <p className="mt-3 text-xs text-stone-500 leading-relaxed">
-          ※ AI가 사진과 메모를 종합해 작성한 초안입니다. 외부 공유 전 반드시
-          선생님이 검토해 주세요. 사진은 서버에 저장되지 않으며 생성 후 즉시
-          폐기됩니다.
-        </p>
-        {error && (
-          <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-            {error}
+        <Card>
+          <StepHeader step={3} title="연령" accent="lavender" />
+          <div className="flex flex-wrap gap-2">
+            {AGE_OPTIONS.map((a) => {
+              const active = age === a.id;
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => setAge(a.id)}
+                  className={`px-3 py-1.5 rounded-full border text-sm transition-all duration-150 font-medium ${
+                    active
+                      ? "bg-lavender text-white border-lavender"
+                      : "bg-white text-ink-secondary border-line-medium hover:border-line-strong"
+                  }`}
+                >
+                  {a.label}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card>
+          <button
+            onClick={generate}
+            disabled={generating}
+            className="w-full sm:w-auto px-6 py-3 bg-lavender text-white rounded-xl font-extrabold text-base hover:opacity-90 hover:-translate-y-px disabled:bg-line-medium disabled:cursor-not-allowed transition-all duration-150 shadow-card"
+          >
+            {generating
+              ? "AI가 사진을 보며 놀이기록을 작성하고 있어요..."
+              : "놀이기록 만들기"}
+          </button>
+          <p className="mt-3 text-xs text-ink-tertiary leading-relaxed">
+            ※ AI가 사진과 메모를 종합해 작성한 초안입니다. 외부 공유 전 반드시
+            선생님이 검토해 주세요. 사진은 서버에 저장되지 않으며 생성 후 즉시
+            폐기됩니다.
           </p>
+          {error && (
+            <p className="mt-3 text-sm text-coral bg-coral-bg px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
+        </Card>
+
+        {journal && (
+          <Card className="bg-lavender-bg/40 border-lavender/30">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-extrabold text-[1.125rem] text-ink tracking-[-0.02em] flex items-center gap-2">
+                <DoneIllust size={28} />
+                완성된 놀이기록
+              </h2>
+              <button
+                onClick={copyAll}
+                className="text-sm px-3 py-1.5 bg-ink text-white rounded-lg hover:bg-ink-secondary font-bold transition-all duration-150"
+              >
+                {copied ? "✓ 전체 복사됨" : "전체 복사"}
+              </button>
+            </div>
+            <div className="space-y-4">
+              {SECTION_LABELS.map(({ key, label }) => (
+                <div key={key}>
+                  <h3 className="font-bold text-sm text-lavender mb-1.5 tracking-[-0.01em]">
+                    {label}
+                  </h3>
+                  <textarea
+                    value={journal[key]}
+                    onChange={(e) => updateSection(key, e.target.value)}
+                    rows={Math.max(2, journal[key].split("\n").length + 1)}
+                    className="w-full text-sm leading-relaxed bg-white border border-lavender/20 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-lavender-bg text-ink"
+                  />
+                </div>
+              ))}
+            </div>
+          </Card>
         )}
       </div>
-
-      {/* Result */}
-      {journal && (
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-display text-lg text-stone-800">완성된 놀이기록</h2>
-            <button
-              onClick={copyAll}
-              className="text-sm px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
-            >
-              {copied ? "✓ 전체 복사됨" : "전체 복사"}
-            </button>
-          </div>
-          <div className="space-y-4">
-            {SECTION_LABELS.map(({ key, label }) => (
-              <div key={key}>
-                <h3 className="font-display text-sm text-terracotta mb-1.5">
-                  {label}
-                </h3>
-                <textarea
-                  value={journal[key]}
-                  onChange={(e) => updateSection(key, e.target.value)}
-                  rows={Math.max(2, journal[key].split("\n").length + 1)}
-                  className="w-full text-sm leading-relaxed bg-cream/40 border border-stone-200 rounded-lg p-3 resize-none focus:outline-none focus:border-terracotta text-stone-700"
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }

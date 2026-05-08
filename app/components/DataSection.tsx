@@ -9,6 +9,7 @@ import {
   clearAllData,
   type CountSummary,
 } from "../lib/db";
+import { Card } from "./Card";
 
 export function DataSection() {
   const [counts, setCounts] = useState<CountSummary | null>(null);
@@ -105,109 +106,119 @@ export function DataSection() {
   }
 
   return (
-    <section className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
-      <div>
-        <h2 className="font-display text-lg text-stone-800">데이터 관리</h2>
-        <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-          모든 기록은 이 기기의 IndexedDB에만 저장됩니다. 다른 기기에서 쓰려면
-          내보낸 백업 파일을 옮긴 뒤 가져오세요.
-        </p>
-      </div>
-
-      {counts && (
-        <div className="grid grid-cols-3 gap-2 text-center bg-cream/40 rounded-xl p-3">
-          <div>
-            <div className="text-xl font-display text-stone-800">
-              {counts.dailyEntries}
-            </div>
-            <div className="text-xs text-stone-500">알림장·관찰일지</div>
-          </div>
-          <div>
-            <div className="text-xl font-display text-stone-800">
-              {counts.parentReplies}
-            </div>
-            <div className="text-xs text-stone-500">학부모 답변</div>
-          </div>
-          <div>
-            <div className="text-xl font-display text-stone-800">
-              {counts.playJournals}
-            </div>
-            <div className="text-xs text-stone-500">놀이기록</div>
-          </div>
+    <Card>
+      <div className="space-y-4">
+        <div>
+          <h2 className="font-bold text-[1.125rem] text-ink tracking-[-0.02em]">
+            데이터 관리
+          </h2>
+          <p className="text-sm text-ink-secondary mt-1 leading-relaxed">
+            모든 기록은 이 기기의 IndexedDB에만 저장됩니다. 다른 기기에서 쓰려면
+            내보낸 백업 파일을 옮긴 뒤 가져오세요.
+          </p>
         </div>
-      )}
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
+        {counts && (
+          <div className="grid grid-cols-3 gap-2 text-center bg-warm/50 rounded-xl p-3">
+            <div>
+              <div className="text-2xl font-extrabold text-coral tracking-[-0.02em]">
+                {counts.dailyEntries}
+              </div>
+              <div className="text-[11px] text-ink-tertiary mt-0.5 font-semibold">
+                알림장·관찰일지
+              </div>
+            </div>
+            <div>
+              <div className="text-2xl font-extrabold text-mustard tracking-[-0.02em]">
+                {counts.parentReplies}
+              </div>
+              <div className="text-[11px] text-ink-tertiary mt-0.5 font-semibold">
+                학부모 답변
+              </div>
+            </div>
+            <div>
+              <div className="text-2xl font-extrabold text-lavender tracking-[-0.02em]">
+                {counts.playJournals}
+              </div>
+              <div className="text-[11px] text-ink-tertiary mt-0.5 font-semibold">
+                놀이기록
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="include-photos"
+              checked={includePhotos}
+              onChange={(e) => setIncludePhotos(e.target.checked)}
+              className="accent-coral"
+            />
+            <label htmlFor="include-photos" className="text-sm text-ink-secondary">
+              놀이기록의 사진 썸네일도 함께 내보내기 (파일이 커집니다)
+            </label>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={doExport}
+              disabled={busy}
+              className="px-4 py-2 bg-ink text-white rounded-lg text-sm font-bold hover:bg-ink-secondary disabled:bg-line-medium transition-all duration-150"
+            >
+              전체 내보내기 (.json)
+            </button>
+            <button
+              onClick={() => pickAndImport("merge")}
+              disabled={busy}
+              className="px-4 py-2 bg-white border border-line-medium text-ink-secondary rounded-lg text-sm font-bold hover:bg-warm disabled:opacity-50 transition-all duration-150"
+            >
+              가져와서 병합
+            </button>
+            <button
+              onClick={() => pickAndImport("replace")}
+              disabled={busy}
+              className="px-4 py-2 bg-white border border-line-medium text-ink-secondary rounded-lg text-sm font-bold hover:bg-warm disabled:opacity-50 transition-all duration-150"
+            >
+              가져와서 덮어쓰기
+            </button>
+            <button
+              onClick={clearAll}
+              disabled={busy}
+              className="px-4 py-2 text-sm text-ink-tertiary hover:text-coral disabled:opacity-50 font-medium"
+            >
+              누적 기록 모두 삭제
+            </button>
+          </div>
+
           <input
-            type="checkbox"
-            id="include-photos"
-            checked={includePhotos}
-            onChange={(e) => setIncludePhotos(e.target.checked)}
-            className="accent-terracotta"
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              const mode = (fileInputRef.current?.dataset.mode ?? "merge") as
+                | "replace"
+                | "merge";
+              if (file) doImport(file, mode);
+              e.target.value = "";
+            }}
           />
-          <label htmlFor="include-photos" className="text-sm text-stone-600">
-            놀이기록의 사진 썸네일도 함께 내보내기 (파일이 커집니다)
-          </label>
+
+          {message && (
+            <p className="text-sm text-sage bg-sage-bg px-3 py-2 rounded-lg font-medium">
+              {message}
+            </p>
+          )}
+          {error && (
+            <p className="text-sm text-coral bg-coral-bg px-3 py-2 rounded-lg font-medium">
+              {error}
+            </p>
+          )}
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={doExport}
-            disabled={busy}
-            className="px-4 py-2 bg-stone-800 text-white rounded-lg text-sm hover:bg-stone-700 disabled:bg-stone-300"
-          >
-            전체 내보내기 (.json)
-          </button>
-          <button
-            onClick={() => pickAndImport("merge")}
-            disabled={busy}
-            className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-lg text-sm hover:bg-stone-50 disabled:opacity-50"
-          >
-            가져와서 병합
-          </button>
-          <button
-            onClick={() => pickAndImport("replace")}
-            disabled={busy}
-            className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-lg text-sm hover:bg-stone-50 disabled:opacity-50"
-          >
-            가져와서 덮어쓰기
-          </button>
-          <button
-            onClick={clearAll}
-            disabled={busy}
-            className="px-4 py-2 text-sm text-stone-600 hover:text-red-600 disabled:opacity-50"
-          >
-            누적 기록 모두 삭제
-          </button>
-        </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json,.json"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            const mode = (fileInputRef.current?.dataset.mode ?? "merge") as
-              | "replace"
-              | "merge";
-            if (file) doImport(file, mode);
-            e.target.value = "";
-          }}
-        />
-
-        {message && (
-          <p className="text-sm text-sage bg-sage/10 px-3 py-2 rounded-lg">
-            {message}
-          </p>
-        )}
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-            {error}
-          </p>
-        )}
       </div>
-    </section>
+    </Card>
   );
 }

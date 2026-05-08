@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAuthHeaders } from "../lib/settings";
 import { SetupBanner } from "../components/SetupBanner";
+import { PageHeader } from "../components/PageHeader";
+import { Card, StepHeader } from "../components/Card";
+import { ReportIllust, EmptyIllust, DoneIllust } from "../components/illustrations";
 import {
   listKidsWithEntries,
   getEntriesInRange,
@@ -28,6 +31,14 @@ const SECTIONS: Array<{ key: keyof Report; label: string }> = [
   { key: "bodyAndEmotion", label: "신체 활동과 정서 표현" },
   { key: "teacherSupport", label: "교사의 지원 내용" },
   { key: "homeConnection", label: "가정 연계 제안" },
+];
+
+const AVATAR_PALETTE = [
+  "bg-coral-bg text-coral",
+  "bg-sage-bg text-sage",
+  "bg-mustard-bg text-mustard",
+  "bg-lavender-bg text-lavender",
+  "bg-navy-bg text-navy",
 ];
 
 function currentMonth(): string {
@@ -68,7 +79,6 @@ export default function ReportsPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-    // selectedKidId intentionally excluded — only seed on first load
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -138,138 +148,146 @@ export default function ReportsPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-6">
-      <SetupBanner />
-      <div>
-        <h1 className="font-display text-2xl text-stone-800">월간 성장 리포트</h1>
-        <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-          한 달치 누적 알림장·관찰일지를 종합해서, 학부모님께 전달할 7-섹션
-          월간 성장 리포트를 만들어 드려요.
-        </p>
-      </div>
+    <main className="pb-28 lg:pb-12">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 pt-5 md:pt-7 space-y-5 md:space-y-6">
+        <SetupBanner />
+        <PageHeader
+          title="월간 성장 리포트"
+          description="한 달치 누적 알림장·관찰일지를 종합해서, 학부모님께 전달할 7-섹션 월간 성장 리포트를 만들어 드려요."
+          accent="navy"
+          illustration={<ReportIllust />}
+        />
 
-      {loading ? (
-        <div className="text-center text-stone-400 py-16">불러오는 중...</div>
-      ) : kids.length === 0 ? (
-        <div className="bg-cream/50 border border-stone-200 rounded-2xl p-8 text-center text-sm text-stone-600 leading-relaxed">
-          아직 누적된 기록이 없어요.
-          <br />
-          "오늘 기록"에서 알림장이나 관찰일지를 한 번 이상 생성해야 월간
-          리포트를 만들 수 있어요.
-        </div>
-      ) : (
-        <>
-          {/* 1. 아이 선택 */}
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <label className="font-display text-lg text-stone-800 mb-3 block">
-              <span className="text-terracotta mr-2">1</span>아이 선택
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {kids.map((k) => {
-                const active = selectedKidId === k.kidId;
-                return (
-                  <button
-                    key={k.kidId}
-                    onClick={() => setSelectedKidId(k.kidId)}
-                    className={`px-3 py-2 rounded-lg border text-sm transition ${
-                      active
-                        ? "bg-sage text-white border-sage"
-                        : "bg-white text-stone-700 border-stone-300 hover:border-stone-400"
-                    }`}
-                  >
-                    <div className="font-medium">{k.kidName}</div>
-                    <div
-                      className={`text-[11px] mt-0.5 ${
-                        active ? "text-white/80" : "text-stone-500"
+        {loading ? (
+          <div className="text-center text-ink-tertiary py-16">불러오는 중...</div>
+        ) : kids.length === 0 ? (
+          <Card className="text-center py-12">
+            <div className="flex flex-col items-center gap-3">
+              <EmptyIllust size={88} />
+              <p className="text-sm text-ink-secondary leading-relaxed max-w-sm">
+                아직 누적된 기록이 없어요.
+                <br />
+                <strong className="text-ink">오늘 기록</strong>에서 알림장이나
+                관찰일지를 한 번 이상 만들어야 월간 리포트를 만들 수 있어요.
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <>
+            <Card>
+              <StepHeader step={1} title="아이 선택" accent="navy" />
+              <div className="flex flex-wrap gap-2">
+                {kids.map((k, idx) => {
+                  const active = selectedKidId === k.kidId;
+                  const palette = AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
+                  return (
+                    <button
+                      key={k.kidId}
+                      onClick={() => setSelectedKidId(k.kidId)}
+                      className={`flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border-2 transition-all duration-150 ${
+                        active
+                          ? "border-navy bg-navy text-white shadow-sm"
+                          : "border-line-light bg-white text-ink hover:border-line-medium"
                       }`}
                     >
-                      누적 {k.entryCount}건
-                    </div>
+                      <span
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold ${
+                          active ? "bg-white text-navy" : palette
+                        }`}
+                      >
+                        {k.kidName.slice(0, 1)}
+                      </span>
+                      <span className="text-sm font-bold">{k.kidName}</span>
+                      <span
+                        className={`text-[11px] ${
+                          active ? "text-white/80" : "text-ink-tertiary"
+                        }`}
+                      >
+                        {k.entryCount}건
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <Card>
+              <StepHeader step={2} title="리포트 기간" accent="navy" />
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="month"
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-line-medium focus:border-navy focus:outline-none focus:ring-3 focus:ring-navy-bg text-sm font-medium"
+                />
+                <span className="text-sm text-ink-secondary">
+                  {range.label} · 이 기간 누적 기록{" "}
+                  <strong className="text-ink">{entries.length}건</strong>
+                </span>
+              </div>
+              {entries.length === 0 && (
+                <p className="text-xs text-mustard mt-2 bg-mustard-bg px-3 py-2 rounded-lg">
+                  선택한 기간에 이 아이의 기록이 없어요. 다른 월을 선택해 주세요.
+                </p>
+              )}
+            </Card>
+
+            <Card>
+              <button
+                onClick={generate}
+                disabled={generating || entries.length === 0}
+                className="w-full sm:w-auto px-6 py-3 bg-navy text-white rounded-xl font-extrabold text-base hover:opacity-90 hover:-translate-y-px disabled:bg-line-medium disabled:cursor-not-allowed transition-all duration-150 shadow-card"
+              >
+                {generating
+                  ? "AI가 한 달치 기록을 종합하고 있어요..."
+                  : `${selectedKid?.kidName ?? ""} ${range.label} 리포트 만들기`}
+              </button>
+              <p className="mt-3 text-xs text-ink-tertiary leading-relaxed">
+                ※ 누적 기록을 종합한 초안입니다. 학부모님께 전달하기 전에 반드시
+                선생님이 검토·수정해 주세요. 다른 아이 이름·진단 표현은 자동으로
+                걸러지지만 100% 보장되지 않습니다.
+              </p>
+              {error && (
+                <p className="mt-3 text-sm text-coral bg-coral-bg px-3 py-2 rounded-lg">
+                  {error}
+                </p>
+              )}
+            </Card>
+
+            {report && (
+              <Card className="bg-navy-bg/40 border-navy/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-extrabold text-[1.125rem] text-ink tracking-[-0.02em] flex items-center gap-2">
+                    <DoneIllust size={28} />
+                    {selectedKid?.kidName} · {range.label} 성장 리포트
+                  </h2>
+                  <button
+                    onClick={copyAll}
+                    className="text-sm px-3 py-1.5 bg-ink text-white rounded-lg hover:bg-ink-secondary font-bold transition-all duration-150"
+                  >
+                    {copied ? "✓ 전체 복사됨" : "전체 복사"}
                   </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* 2. 월 선택 */}
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <label className="font-display text-lg text-stone-800 mb-3 block">
-              <span className="text-terracotta mr-2">2</span>리포트 기간
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="month"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm"
-              />
-              <span className="text-sm text-stone-500">
-                {range.label} · 이 기간 누적 기록 {entries.length}건
-              </span>
-            </div>
-            {entries.length === 0 && (
-              <p className="text-xs text-amber-600 mt-2">
-                선택한 기간에 이 아이의 기록이 없어요. 다른 월을 선택해 주세요.
-              </p>
+                </div>
+                <div className="space-y-4">
+                  {SECTIONS.map(({ key, label }) => (
+                    <div key={key}>
+                      <h3 className="font-bold text-sm text-navy mb-1.5 tracking-[-0.01em]">
+                        {label}
+                      </h3>
+                      <textarea
+                        value={report[key]}
+                        onChange={(e) => updateSection(key, e.target.value)}
+                        rows={Math.max(2, report[key].split("\n").length + 1)}
+                        className="w-full text-sm leading-relaxed bg-white border border-navy/15 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-navy-bg text-ink"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Card>
             )}
-          </section>
-
-          {/* 3. 생성 */}
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <button
-              onClick={generate}
-              disabled={generating || entries.length === 0}
-              className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
-            >
-              {generating
-                ? "AI가 한 달치 기록을 종합하고 있어요..."
-                : `${selectedKid?.kidName ?? ""} ${range.label} 리포트 생성하기`}
-            </button>
-            <p className="mt-3 text-xs text-stone-500 leading-relaxed">
-              ※ 누적 기록을 종합한 초안입니다. 학부모님께 전달하기 전에 반드시
-              선생님이 검토·수정해 주세요. 다른 아이 이름·진단 표현은 자동으로
-              걸러지지만 100% 보장되지 않습니다.
-            </p>
-            {error && (
-              <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-                {error}
-              </p>
-            )}
-          </section>
-
-          {/* 4. 결과 */}
-          {report && (
-            <section className="bg-white rounded-2xl border border-stone-200 p-6">
-              <div className="flex items-baseline justify-between mb-4">
-                <h2 className="font-display text-lg text-stone-800">
-                  {selectedKid?.kidName} · {range.label} 성장 리포트
-                </h2>
-                <button
-                  onClick={copyAll}
-                  className="text-sm px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
-                >
-                  {copied ? "✓ 전체 복사됨" : "전체 복사"}
-                </button>
-              </div>
-              <div className="space-y-4">
-                {SECTIONS.map(({ key, label }) => (
-                  <div key={key}>
-                    <h3 className="font-display text-sm text-terracotta mb-1.5">
-                      {label}
-                    </h3>
-                    <textarea
-                      value={report[key]}
-                      onChange={(e) => updateSection(key, e.target.value)}
-                      rows={Math.max(2, report[key].split("\n").length + 1)}
-                      className="w-full text-sm leading-relaxed bg-cream/40 border border-stone-200 rounded-lg p-3 resize-none focus:outline-none focus:border-terracotta text-stone-700"
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </>
-      )}
+          </>
+        )}
+      </div>
     </main>
   );
 }

@@ -2,32 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+:root {
+  /* 차분 베이스 */
+  --bg-cream: #FBF7F0;
+  --bg-warm: #F5EFE3;
+  --card-white: #FFFFFF;
+  --card-soft: #FDFAF4;
+
+  /* 텍스트 */
+  --text-primary: #2C2420;
+  --text-secondary: #6B5D52;
+  --text-tertiary: #9A8C81;
+  --text-on-accent: #FFFFFF;
+
+  /* 코랄 — 알림장, 메인 액션 */
+  --accent-coral: #E85A4F;
+  --accent-coral-light: #F58575;
+  --accent-coral-bg: #FCE8E5;
+
+  /* 세이지 — 관찰일지, 출석 */
+  --accent-sage: #5B8A6F;
+  --accent-sage-light: #8BB39A;
+  --accent-sage-bg: #E5EFE9;
+
+  /* 머스타드 — 학부모 답변, 강조 */
+  --accent-mustard: #D4A537;
+  --accent-mustard-light: #E8C467;
+  --accent-mustard-bg: #FBF1D8;
+
+  /* 라벤더 — 놀이기록 */
+  --accent-lavender: #8B7BB5;
+  --accent-lavender-bg: #ECE7F4;
+
+  /* 네이비 — 성장 리포트 */
+  --accent-navy: #2D4A6B;
+  --accent-navy-bg: #DCE6F0;
+
+  /* 보더 */
+  --border-light: #EFE8DC;
+  --border-medium: #DCD2C2;
+  --border-strong: #B8AB97;
+
+  /* 그림자 */
+  --shadow-sm: 0 1px 2px rgba(44, 36, 32, 0.04);
+  --shadow-md: 0 2px 8px rgba(44, 36, 32, 0.06);
+  --shadow-lg: 0 8px 24px rgba(44, 36, 32, 0.08);
+  --shadow-coral: 0 4px 14px rgba(232, 90, 79, 0.25);
+  --shadow-sage: 0 4px 14px rgba(91, 138, 111, 0.22);
+
+  /* 둥글기 */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+}
 
 html, body {
-  background-color: #FFF9F0;
-  color: #2A2620;
+  background-color: var(--bg-cream);
+  color: var(--text-primary);
 }
 
 body {
-  font-family: 'Pretendard', system-ui, sans-serif;
-  font-feature-settings: 'palt' 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'palt' 1;
 }
 
-.font-display {
-  font-family: 'Gowun Dodum', 'Pretendard', system-ui, sans-serif;
-}
-
-textarea, input {
+textarea, input, button, select {
   font-family: inherit;
+  letter-spacing: -0.01em;
 }
 
 .scrollbar-thin::-webkit-scrollbar {
   width: 8px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #E5DDD0;
+  background: var(--border-medium);
   border-radius: 4px;
+}
+
+/* 페이지 진입 fade */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.page-fade {
+  animation: fadeIn 200ms ease-out;
 }

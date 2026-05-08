@@ -13,7 +13,6 @@ export function SetupBanner() {
 
   useEffect(() => {
     setConfigured(isConfigured());
-    // Re-check when localStorage changes from another tab
     const onStorage = () => setConfigured(isConfigured());
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -22,16 +21,14 @@ export function SetupBanner() {
   if (configured !== false) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-      <div className="text-sm text-stone-700">
-        <strong>AI 키가 아직 등록되지 않았어요.</strong>{" "}
-        <span className="text-stone-600">
-          생성을 시작하려면 본인의 AI API 키가 필요합니다.
-        </span>
+    <div className="bg-mustard-bg border border-mustard/30 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+      <div className="text-sm text-ink-secondary">
+        <strong className="text-ink">AI 키가 아직 등록되지 않았어요.</strong>{" "}
+        <span>생성을 시작하려면 본인의 API 키가 필요해요.</span>
       </div>
       <Link
         href="/settings"
-        className="shrink-0 px-3 py-1.5 bg-stone-800 text-white rounded-lg text-sm hover:bg-stone-700"
+        className="shrink-0 px-3 py-1.5 bg-coral text-white rounded-lg text-sm font-bold hover:bg-coral-light transition-all duration-150 hover:-translate-y-px"
       >
         설정 열기
       </Link>

@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { SetupBanner } from "./components/SetupBanner";
+import { PageHeader } from "./components/PageHeader";
+import { Card, StepHeader } from "./components/Card";
+import { AlrimIllust, GwanchalIllust, DoneIllust, ClassIllust } from "./components/illustrations";
 import { saveDailyEntries, todayISO, type DailyEntryRecord } from "./lib/db";
 
 type MealStatus = "잘먹음" | "보통" | "안먹음" | "";
@@ -20,6 +23,7 @@ interface DailyEntry {
   mood: MoodStatus;
   nap: NapStatus;
   memo: string;
+  present: boolean;
 }
 
 interface GeneratedNote {
@@ -41,14 +45,16 @@ interface PersistedState {
   docType: DocType;
 }
 
-const DOC_LABELS: Record<DocType, { name: string; sub: string }> = {
+const DOC_LABELS: Record<DocType, { name: string; sub: string; emoji: string }> = {
   alrim: {
     name: "알림장",
     sub: "매일 학부모님께 보내는 일일 기록",
+    emoji: "📝",
   },
   gwanchal: {
     name: "관찰일지",
     sub: "누리과정 영역과 연계된 전문 기록",
+    emoji: "📋",
   },
 };
 
@@ -65,12 +71,20 @@ const TONE_LABELS: Record<DocType, Record<ToneStyle, string>> = {
   },
 };
 
+const AVATAR_PALETTE = [
+  "bg-coral-bg text-coral",
+  "bg-sage-bg text-sage",
+  "bg-mustard-bg text-mustard",
+  "bg-lavender-bg text-lavender",
+  "bg-navy-bg text-navy",
+];
+
 function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
 function emptyEntry(childId: string): DailyEntry {
-  return { childId, meal: "", mood: "", nap: "", memo: "" };
+  return { childId, meal: "", mood: "", nap: "", memo: "", present: true };
 }
 
 export default function Page() {
@@ -96,7 +110,12 @@ export default function Page() {
         setClassName(parsed.className ?? "햇살반");
         setChildren(parsed.children ?? []);
         setTodayActivity(parsed.todayActivity ?? "");
-        setEntries(parsed.entries ?? {});
+        // backfill present field for older saves
+        const restored: Record<string, DailyEntry> = {};
+        for (const [k, v] of Object.entries(parsed.entries ?? {})) {
+          restored[k] = { ...emptyEntry(k), ...v, present: v.present ?? true };
+        }
+        setEntries(restored);
         setTone(parsed.tone ?? "warm");
         setDocType(parsed.docType ?? "alrim");
       }
@@ -162,6 +181,26 @@ export default function Page() {
     }));
   }
 
+  function togglePresent(id: string) {
+    setEntries((prev) => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] ?? emptyEntry(id)),
+        present: !(prev[id]?.present ?? true),
+      },
+    }));
+  }
+
+  function setAllPresent(present: boolean) {
+    setEntries((prev) => {
+      const next = { ...prev };
+      for (const c of children) {
+        next[c.id] = { ...(next[c.id] ?? emptyEntry(c.id)), present };
+      }
+      return next;
+    });
+  }
+
   function clearToday() {
     if (!confirm("오늘 입력한 모든 내용을 지울까요? (아이 명단은 유지됩니다)"))
       return;
@@ -177,6 +216,13 @@ export default function Page() {
       setError("먼저 아이들을 등록해 주세요.");
       return;
     }
+    const presentChildren = children.filter(
+      (c) => entries[c.id]?.present ?? true,
+    );
+    if (presentChildren.length === 0) {
+      setError("출석한 아이가 한 명도 없어요. 출석을 먼저 체크해 주세요.");
+      return;
+    }
     setError(null);
     setGenerating(true);
     setNotes({});
@@ -189,7 +235,7 @@ export default function Page() {
           todayActivity,
           tone,
           docType,
-          children: children.map((c) => ({
+          children: presentChildren.map((c) => ({
             id: c.id,
             name: c.name,
             entry: entries[c.id] ?? emptyEntry(c.id),
@@ -205,7 +251,6 @@ export default function Page() {
       for (const n of data.notes) map[n.childId] = n.text;
       setNotes(map);
 
-      // Persist to IndexedDB so monthly reports / export have the history
       const settings = loadSettings();
       const date = todayISO();
       const records: DailyEntryRecord[] = [];
@@ -230,9 +275,7 @@ export default function Page() {
           createdAt: Date.now(),
         });
       }
-      saveDailyEntries(records).catch(() => {
-        // Don't surface DB errors — generation already succeeded.
-      });
+      saveDailyEntries(records).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {
@@ -265,44 +308,50 @@ export default function Page() {
     return e && (e.meal || e.mood || e.nap || e.memo);
   });
 
-  return (
-    <main className="min-h-screen pb-24">
-      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-4">
-        <SetupBanner />
-        {/* Class name */}
-        <div className="flex items-center justify-between">
-          <h1 className="font-display text-xl text-stone-800">오늘 기록</h1>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-stone-500">반 이름</span>
-            <input
-              value={className}
-              onChange={(e) => setClassName(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-stone-300 bg-white w-28 focus:border-terracotta focus:outline-none"
-            />
-          </div>
-        </div>
-      </div>
+  const presentCount = children.filter((c) => entries[c.id]?.present ?? true).length;
+  const accent = docType === "alrim" ? "coral" : "sage";
 
-      <div className="max-w-5xl mx-auto px-5 pt-6 space-y-8">
-        {/* Mode switcher */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-2 grid grid-cols-2 gap-2">
+  return (
+    <main className="pb-28 lg:pb-12">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-5 md:pt-7 space-y-5 md:space-y-6">
+        <SetupBanner />
+
+        <PageHeader
+          title="오늘 기록"
+          description="아이별 식사·기분·낮잠·메모만 빠르게 입력하면 알림장과 관찰일지를 한 번에 만들어드려요."
+          accent={accent}
+          illustration={
+            docType === "alrim" ? <AlrimIllust /> : <GwanchalIllust />
+          }
+        />
+
+        {/* 모드 탭 */}
+        <div className="grid grid-cols-2 gap-2 md:gap-3">
           {(Object.keys(DOC_LABELS) as DocType[]).map((d) => {
             const active = docType === d;
             const info = DOC_LABELS[d];
+            const isAlrim = d === "alrim";
             return (
               <button
                 key={d}
                 onClick={() => setDocType(d)}
-                className={`text-left px-4 py-3 rounded-xl transition ${
+                className={`text-left p-4 md:p-5 rounded-2xl border-2 transition-all duration-150 ${
                   active
-                    ? "bg-terracotta text-white"
-                    : "bg-transparent text-stone-700 hover:bg-stone-50"
+                    ? isAlrim
+                      ? "bg-coral text-white border-coral shadow-coral"
+                      : "bg-sage text-white border-sage shadow-sage"
+                    : "bg-white text-ink border-line-light hover:border-line-medium"
                 }`}
               >
-                <div className="font-display text-base">{info.name}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{info.emoji}</span>
+                  <span className="font-extrabold text-base md:text-lg tracking-[-0.02em]">
+                    {info.name}
+                  </span>
+                </div>
                 <div
-                  className={`text-xs mt-0.5 ${
-                    active ? "text-white/80" : "text-stone-500"
+                  className={`text-xs md:text-sm mt-1 leading-relaxed ${
+                    active ? "text-white/85" : "text-ink-secondary"
                   }`}
                 >
                   {info.sub}
@@ -312,69 +361,144 @@ export default function Page() {
           })}
         </div>
 
-        {/* Step 1: 아이 명단 */}
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-display text-lg text-stone-800">
-              <span className="text-terracotta mr-2">1</span>우리 반 아이들
-            </h2>
-            <span className="text-sm text-stone-500">
-              {children.length}명 등록됨
-            </span>
+        {/* 반 이름 */}
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold tracking-wider text-ink-tertiary uppercase">
+                반 이름
+              </div>
+              <input
+                value={className}
+                onChange={(e) => setClassName(e.target.value)}
+                className="mt-1 px-3 py-2 rounded-lg border border-line-medium bg-white w-32 focus:border-coral focus:outline-none focus:ring-3 focus:ring-coral-bg font-bold"
+              />
+            </div>
+            <div className="text-right">
+              <div className="text-xs font-semibold tracking-wider text-ink-tertiary uppercase">
+                오늘 출석
+              </div>
+              <div className="font-extrabold text-2xl text-coral mt-1 tracking-[-0.02em]">
+                {presentCount}
+                <span className="text-base text-ink-tertiary font-bold">
+                  {" "}/ {children.length}명
+                </span>
+              </div>
+            </div>
           </div>
+        </Card>
+
+        {/* Step 1: 우리 반 아이들 */}
+        <Card>
+          <StepHeader
+            step={1}
+            title="우리 반 아이들"
+            accent="coral"
+            hint="한 번 등록하면 매일 다시 입력할 필요가 없어요."
+            right={
+              children.length > 0 ? (
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => setAllPresent(true)}
+                    className="text-xs px-2.5 py-1.5 rounded-full bg-sage-bg text-sage hover:bg-sage hover:text-white transition-colors duration-150 font-bold"
+                  >
+                    전체 출석
+                  </button>
+                  <button
+                    onClick={() => setAllPresent(false)}
+                    className="text-xs px-2.5 py-1.5 rounded-full bg-warm text-ink-secondary hover:bg-line-medium transition-colors duration-150 font-bold"
+                  >
+                    전체 해제
+                  </button>
+                </div>
+              ) : null
+            }
+          />
 
           {children.length === 0 ? (
-            <div className="text-center py-8 text-stone-400 text-sm">
-              아래에서 아이 이름을 추가해 주세요. 한 번 등록하면 매일 다시
-              입력할 필요가 없어요.
+            <div className="flex flex-col items-center text-center py-8 gap-2">
+              <ClassIllust size={88} />
+              <p className="text-sm text-ink-secondary mt-2 leading-relaxed">
+                아래에서 아이 이름을 추가해 주세요.
+              </p>
             </div>
           ) : (
             <div className="flex flex-wrap gap-2 mb-4">
-              {children.map((c) => (
-                <span
-                  key={c.id}
-                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 rounded-full text-sm"
-                >
-                  {c.name}
+              {children.map((c, idx) => {
+                const present = entries[c.id]?.present ?? true;
+                const palette = AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
+                return (
                   <button
-                    onClick={() => removeChild(c.id)}
-                    className="text-stone-400 hover:text-red-500 text-xs"
-                    aria-label={`${c.name} 삭제`}
+                    key={c.id}
+                    onClick={() => togglePresent(c.id)}
+                    className={`group inline-flex items-center gap-2 pl-1.5 pr-1 py-1 rounded-full border-2 transition-all duration-150 active:scale-95 ${
+                      present
+                        ? "border-sage bg-sage text-white shadow-sm"
+                        : "border-line-medium bg-warm text-ink-tertiary line-through"
+                    }`}
                   >
-                    ✕
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold ${
+                        present ? "bg-white text-sage" : palette
+                      }`}
+                    >
+                      {c.name.slice(0, 1)}
+                    </span>
+                    <span className="text-sm font-bold">{c.name}</span>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeChild(c.id);
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          removeChild(c.id);
+                        }
+                      }}
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+                        present
+                          ? "text-white/70 hover:text-white hover:bg-white/20"
+                          : "text-ink-tertiary hover:text-coral"
+                      }`}
+                      aria-label={`${c.name} 명단에서 삭제`}
+                    >
+                      ✕
+                    </span>
                   </button>
-                </span>
-              ))}
+                );
+              })}
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex gap-2 flex-1">
-              <input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    addChild(newName);
-                    setNewName("");
-                  }
-                }}
-                placeholder="이름 입력 후 Enter"
-                className="flex-1 px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none"
-              />
-              <button
-                onClick={() => {
+          <div className="flex flex-col sm:flex-row gap-2.5">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
                   addChild(newName);
                   setNewName("");
-                }}
-                className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 text-sm whitespace-nowrap"
-              >
-                추가
-              </button>
-            </div>
+                }
+              }}
+              placeholder="이름 입력 후 Enter"
+              className="flex-1 px-3 py-2.5 rounded-lg border border-line-medium focus:border-coral focus:outline-none focus:ring-3 focus:ring-coral-bg text-sm"
+            />
+            <button
+              onClick={() => {
+                addChild(newName);
+                setNewName("");
+              }}
+              className="px-5 py-2.5 bg-ink text-white rounded-lg hover:bg-ink-secondary text-sm font-bold transition-all duration-150 hover:-translate-y-px"
+            >
+              추가
+            </button>
           </div>
+
           <details className="mt-3 text-sm">
-            <summary className="text-stone-500 cursor-pointer hover:text-stone-700">
+            <summary className="text-ink-secondary cursor-pointer hover:text-coral font-medium">
               여러 명 한 번에 등록
             </summary>
             <div className="mt-2 flex gap-2">
@@ -383,85 +507,100 @@ export default function Page() {
                 onChange={(e) => setBulkInput(e.target.value)}
                 placeholder="이름들을 줄바꿈 또는 쉼표로 구분"
                 rows={3}
-                className="flex-1 px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none text-sm"
+                className="flex-1 px-3 py-2 rounded-lg border border-line-medium focus:border-coral focus:outline-none focus:ring-3 focus:ring-coral-bg text-sm"
               />
               <button
                 onClick={addBulk}
-                className="px-4 py-2 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 text-sm self-start"
+                className="px-4 py-2 bg-warm text-ink rounded-lg hover:bg-line-medium text-sm self-start font-bold"
               >
                 일괄 추가
               </button>
             </div>
           </details>
-        </section>
+        </Card>
 
         {/* Step 2: 오늘의 활동 */}
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <h2 className="font-display text-lg text-stone-800 mb-4">
-            <span className="text-terracotta mr-2">2</span>오늘의 활동
-          </h2>
+        <Card>
+          <StepHeader
+            step={2}
+            title="오늘의 활동"
+            accent="coral"
+            hint="한 번 입력하면 모든 아이의 기록에 자연스럽게 반영돼요."
+          />
           <textarea
             value={todayActivity}
             onChange={(e) => setTodayActivity(e.target.value)}
             placeholder="예: 봄꽃 그리기 미술활동을 했고, 바깥놀이로 모래놀이를 했어요. 점심은 닭볶음탕."
             rows={3}
-            className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:border-terracotta focus:outline-none"
+            className="w-full px-3 py-2.5 rounded-lg border border-line-medium focus:border-coral focus:outline-none focus:ring-3 focus:ring-coral-bg text-sm leading-relaxed"
           />
-          <p className="text-xs text-stone-500 mt-2">
-            한 번 입력하면 모든 아이의 알림장에 자연스럽게 반영돼요.
-          </p>
-        </section>
+        </Card>
 
         {/* Step 3: 아이별 빠른 입력 */}
         {children.length > 0 && (
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="font-display text-lg text-stone-800">
-                <span className="text-terracotta mr-2">3</span>아이별 오늘 모습
-              </h2>
-              {hasAnyEntry && (
-                <button
-                  onClick={clearToday}
-                  className="text-xs text-stone-500 hover:text-red-500"
-                >
-                  오늘 입력 모두 지우기
-                </button>
-              )}
-            </div>
-            <p className="text-sm text-stone-500 mb-4">
-              {docType === "gwanchal"
-                ? "각 아이의 관찰된 모습을 짧게 메모해 주세요. 식사·기분·낮잠은 참고만 됩니다."
-                : "빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요. 비워두셔도 괜찮아요."}
-            </p>
+          <Card>
+            <StepHeader
+              step={3}
+              title="아이별 오늘 모습"
+              accent="coral"
+              hint={
+                docType === "gwanchal"
+                  ? "각 아이의 관찰된 모습을 짧게 메모해 주세요. 식사·기분·낮잠은 참고만 됩니다."
+                  : "빠르게 토글로 선택하고, 특이사항만 짧게 메모해 주세요. 비워두셔도 괜찮아요."
+              }
+              right={
+                hasAnyEntry ? (
+                  <button
+                    onClick={clearToday}
+                    className="text-xs text-ink-tertiary hover:text-coral font-medium"
+                  >
+                    오늘 입력 지우기
+                  </button>
+                ) : null
+              }
+            />
             <div className="space-y-3">
-              {children.map((c) => (
-                <ChildRow
-                  key={c.id}
-                  child={c}
-                  entry={entries[c.id] ?? emptyEntry(c.id)}
-                  onChange={(patch) => updateEntry(c.id, patch)}
-                  docType={docType}
-                />
-              ))}
+              {children
+                .filter((c) => entries[c.id]?.present ?? true)
+                .map((c, idx) => (
+                  <ChildRow
+                    key={c.id}
+                    child={c}
+                    avatarPalette={AVATAR_PALETTE[idx % AVATAR_PALETTE.length]}
+                    entry={entries[c.id] ?? emptyEntry(c.id)}
+                    onChange={(patch) => updateEntry(c.id, patch)}
+                    docType={docType}
+                  />
+                ))}
             </div>
-          </section>
+            {presentCount === 0 && (
+              <div className="text-center text-sm text-ink-tertiary py-6">
+                출석한 아이가 없어요. 위 칩에서 출석을 선택해 주세요.
+              </div>
+            )}
+          </Card>
         )}
 
         {/* Step 4: 생성 */}
-        <section className="bg-white rounded-2xl border border-stone-200 p-6">
-          <h2 className="font-display text-lg text-stone-800 mb-4">
-            <span className="text-terracotta mr-2">4</span>
-            {DOC_LABELS[docType].name} 생성
-          </h2>
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="text-sm text-stone-600">문체</span>
+        <Card>
+          <StepHeader
+            step={4}
+            title={`${DOC_LABELS[docType].name} 생성`}
+            accent={accent}
+          />
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span className="text-xs font-semibold tracking-wider text-ink-tertiary uppercase mr-1">
+              문체
+            </span>
             {(Object.keys(TONE_LABELS[docType]) as ToneStyle[]).map((t) => (
               <label
                 key={t}
-                className={`px-3 py-1.5 rounded-full border text-sm cursor-pointer transition ${
+                className={`px-3 py-1.5 rounded-full border text-sm cursor-pointer transition-all duration-150 font-medium ${
                   tone === t
-                    ? "bg-terracotta text-white border-terracotta"
-                    : "bg-white text-stone-700 border-stone-300 hover:border-stone-400"
+                    ? docType === "alrim"
+                      ? "bg-coral text-white border-coral"
+                      : "bg-sage text-white border-sage"
+                    : "bg-white text-ink-secondary border-line-medium hover:border-line-strong"
                 }`}
               >
                 <input
@@ -479,53 +618,83 @@ export default function Page() {
           <button
             onClick={generate}
             disabled={generating || children.length === 0}
-            className="w-full sm:w-auto px-6 py-3 bg-terracotta text-white rounded-xl font-medium hover:bg-terracotta/90 disabled:bg-stone-300 disabled:cursor-not-allowed transition"
+            className={`w-full sm:w-auto px-6 py-3 text-white rounded-xl font-extrabold text-base transition-all duration-150 disabled:bg-line-medium disabled:cursor-not-allowed ${
+              docType === "alrim"
+                ? "bg-coral hover:bg-coral-light shadow-coral hover:-translate-y-px"
+                : "bg-sage hover:bg-sage-light shadow-sage hover:-translate-y-px"
+            }`}
           >
             {generating
               ? `AI가 ${DOC_LABELS[docType].name}을 작성하고 있어요...`
-              : `${children.length}명의 ${DOC_LABELS[docType].name} 한 번에 생성하기`}
+              : `${presentCount}명의 ${DOC_LABELS[docType].name} 한 번에 만들기`}
           </button>
-          <p className="mt-3 text-xs text-stone-500 leading-relaxed">
+          <p className="mt-3 text-xs text-ink-tertiary leading-relaxed">
             ※ AI가 작성한 초안입니다. 학부모님이나 외부에 전송하기 전에 반드시
             선생님이 검토·수정해 주세요. 진단·평가적 표현, 다른 아이 이름은
             자동으로 걸러지지만 100% 보장되지 않습니다.
           </p>
           {error && (
-            <p className="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <p className="mt-3 text-sm text-coral bg-coral-bg px-3 py-2 rounded-lg">
               {error}
             </p>
           )}
-        </section>
+        </Card>
 
         {/* Step 5: 결과 */}
         {Object.keys(notes).length > 0 && (
-          <section className="bg-white rounded-2xl border border-stone-200 p-6">
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="font-display text-lg text-stone-800">
-                <span className="text-terracotta mr-2">5</span>완성된{" "}
-                {DOC_LABELS[docType].name}
-              </h2>
-              <button
-                onClick={copyAll}
-                className="text-sm px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
-              >
-                {copiedId === "ALL" ? "✓ 전체 복사됨" : "전체 복사"}
-              </button>
+          <Card>
+            <StepHeader
+              step={5}
+              title={`완성된 ${DOC_LABELS[docType].name}`}
+              accent={accent}
+              right={
+                <button
+                  onClick={copyAll}
+                  className="text-sm px-3 py-1.5 bg-ink text-white rounded-lg hover:bg-ink-secondary font-bold transition-all duration-150"
+                >
+                  {copiedId === "ALL" ? "✓ 전체 복사됨" : "전체 복사"}
+                </button>
+              }
+            />
+            <div className="flex items-center gap-2 mb-4 text-sm text-sage bg-sage-bg px-3 py-2 rounded-lg">
+              <DoneIllust size={28} />
+              <span className="font-bold">
+                {Object.keys(notes).length}명의 초안이 완성됐어요. 직접 다듬어
+                보내세요.
+              </span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {children.map((c) => {
+            <div className="grid gap-3 sm:grid-cols-2">
+              {children.map((c, idx) => {
                 const text = notes[c.id];
                 if (!text) return null;
+                const palette = AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
+                const cardBg =
+                  docType === "alrim"
+                    ? "bg-coral-bg/50 border-coral-light/40"
+                    : "bg-sage-bg/50 border-sage-light/40";
                 return (
                   <div
                     key={c.id}
-                    className="border border-stone-200 rounded-xl p-4 bg-cream/40"
+                    className={`border rounded-2xl p-4 ${cardBg}`}
                   >
-                    <div className="flex items-baseline justify-between mb-2">
-                      <h3 className="font-display text-stone-800">{c.name}</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-extrabold ${palette}`}
+                        >
+                          {c.name.slice(0, 1)}
+                        </span>
+                        <h3 className="font-bold text-ink tracking-[-0.02em]">
+                          {c.name}
+                        </h3>
+                      </div>
                       <button
                         onClick={() => copy(c.id)}
-                        className="text-xs px-2 py-1 text-stone-600 hover:text-terracotta"
+                        className={`text-xs px-2 py-1 font-bold rounded-md transition-colors ${
+                          docType === "alrim"
+                            ? "text-coral hover:bg-coral hover:text-white"
+                            : "text-sage hover:bg-sage hover:text-white"
+                        }`}
                       >
                         {copiedId === c.id ? "✓ 복사됨" : "복사"}
                       </button>
@@ -536,34 +705,36 @@ export default function Page() {
                         setNotes((prev) => ({ ...prev, [c.id]: e.target.value }))
                       }
                       rows={docType === "gwanchal" ? 12 : 6}
-                      className="w-full text-sm leading-relaxed bg-transparent resize-none focus:outline-none text-stone-700"
+                      className="w-full text-sm leading-relaxed bg-white/70 border border-white rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-current/20 text-ink"
                     />
                   </div>
                 );
               })}
             </div>
-            <p className="text-xs text-stone-500 mt-4">
+            <p className="text-xs text-ink-tertiary mt-4">
               내용은 직접 수정할 수 있어요. 복사 후 키즈노트·카카오톡·문자에
               붙여넣으세요.
             </p>
-          </section>
+          </Card>
         )}
-      </div>
 
-      <footer className="max-w-5xl mx-auto px-5 mt-16 text-center text-xs text-stone-400">
-        오늘알림장 · 선생님의 1시간을 돌려드립니다
-      </footer>
+        <footer className="text-center text-xs text-ink-tertiary pt-6">
+          쌤노트 · 선생님의 1시간을 돌려드립니다
+        </footer>
+      </div>
     </main>
   );
 }
 
 function ChildRow({
   child,
+  avatarPalette,
   entry,
   onChange,
   docType,
 }: {
   child: Child;
+  avatarPalette: string;
   entry: DailyEntry;
   onChange: (patch: Partial<DailyEntry>) => void;
   docType: DocType;
@@ -573,11 +744,14 @@ function ChildRow({
     ? "오늘 관찰한 모습 (예: 블록으로 긴 다리를 만들고 친구와 함께 놀이 확장, 동화책 보고 질문 많이 함)"
     : "특이사항 (예: 친구랑 블록놀이 즐겁게 함, 콧물 살짝 있음)";
   return (
-    <div className="border border-stone-200 rounded-xl p-3 bg-cream/30">
+    <div className="border border-line-light rounded-xl p-3 bg-soft">
       <div className="flex flex-wrap items-center gap-2 mb-2">
-        <span className="font-display text-stone-800 min-w-[3.5rem]">
-          {child.name}
+        <span
+          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold ${avatarPalette}`}
+        >
+          {child.name.slice(0, 1)}
         </span>
+        <span className="font-bold text-ink min-w-[3.5rem]">{child.name}</span>
         {!isGwanchal && (
           <>
             <ToggleGroup
@@ -607,14 +781,14 @@ function ChildRow({
           onChange={(e) => onChange({ memo: e.target.value })}
           placeholder={placeholder}
           rows={2}
-          className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none resize-none"
+          className="w-full px-3 py-1.5 text-sm rounded-lg border border-line-light bg-white focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage-bg resize-none"
         />
       ) : (
         <input
           value={entry.memo}
           onChange={(e) => onChange({ memo: e.target.value })}
           placeholder={placeholder}
-          className="w-full px-3 py-1.5 text-sm rounded-lg border border-stone-200 bg-white focus:border-terracotta focus:outline-none"
+          className="w-full px-3 py-1.5 text-sm rounded-lg border border-line-light bg-white focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral-bg"
         />
       )}
     </div>
@@ -634,17 +808,19 @@ function ToggleGroup<T extends string>({
 }) {
   return (
     <div className="flex items-center gap-1">
-      <span className="text-xs text-stone-500 mr-1">{label}</span>
+      <span className="text-xs text-ink-tertiary mr-1 font-semibold">
+        {label}
+      </span>
       {options.map((opt) => {
         const active = value === opt;
         return (
           <button
             key={opt}
             onClick={() => onChange(active ? "" : opt)}
-            className={`px-2.5 py-1 text-xs rounded-md border transition ${
+            className={`px-2.5 py-1 text-xs rounded-md border transition-all duration-150 active:scale-95 font-medium ${
               active
                 ? "bg-sage text-white border-sage"
-                : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+                : "bg-white text-ink-secondary border-line-light hover:border-line-medium"
             }`}
           >
             {opt}

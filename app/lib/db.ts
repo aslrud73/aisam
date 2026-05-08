@@ -152,6 +152,30 @@ export interface CountSummary {
   playJournals: number;
 }
 
+export async function getMonthlyCounts(): Promise<{
+  alrim: number;
+  gwanchal: number;
+}> {
+  const db = getDb();
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const from = `${y}-${m}-01`;
+  const last = new Date(y, now.getMonth() + 1, 0).getDate();
+  const to = `${y}-${m}-${String(last).padStart(2, "0")}`;
+  const rows = await db.dailyEntries
+    .where("date")
+    .between(from, to, true, true)
+    .toArray();
+  let alrim = 0;
+  let gwanchal = 0;
+  for (const r of rows) {
+    if (r.docType === "alrim") alrim += 1;
+    else if (r.docType === "gwanchal") gwanchal += 1;
+  }
+  return { alrim, gwanchal };
+}
+
 export async function getCounts(): Promise<CountSummary> {
   const db = getDb();
   const [d, p, pl] = await Promise.all([
