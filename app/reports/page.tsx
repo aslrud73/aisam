@@ -517,13 +517,23 @@ export default function ReportsPage() {
                   </span>
                   {selectedKid?.kidName} · {range?.label} 성장 리포트
                 </h2>
-                <button
-                  onClick={copyAll}
-                  className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
-                >
-                  <Icon name="copy" size={14} strokeWidth={1.8} />
-                  {copied ? "전체 복사됨" : "전체 복사"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={copyAll}
+                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                  >
+                    <Icon name="copy" size={14} strokeWidth={1.8} />
+                    {copied ? "전체 복사됨" : "전체 복사"}
+                  </button>
+                  <button
+                    onClick={() => setReport(null)}
+                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-paper hover:bg-warm-50 text-ink-soft border border-warm-200 rounded-xl font-medium"
+                    title="결과 영역 닫기 (저장된 리포트는 아래 히스토리에서 다시 볼 수 있어요)"
+                  >
+                    <Icon name="x" size={14} strokeWidth={2} />
+                    닫기
+                  </button>
+                </div>
               </div>
               <div className="space-y-4">
                 {SECTIONS.map(({ key, label }) => (

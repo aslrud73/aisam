@@ -244,13 +244,23 @@ export default function ParentPage() {
               </span>
               완성된 답변 초안
             </h2>
-            <button
-              onClick={copyDraft}
-              className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
-            >
-              <Icon name="copy" size={14} strokeWidth={1.8} />
-              {copied ? "복사됨" : "복사"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={copyDraft}
+                className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+              >
+                <Icon name="copy" size={14} strokeWidth={1.8} />
+                {copied ? "복사됨" : "복사"}
+              </button>
+              <button
+                onClick={() => setDraft("")}
+                className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-paper hover:bg-warm-50 text-ink-soft border border-warm-200 rounded-xl font-medium"
+                title="결과 영역 닫기 (저장된 답변은 아래 히스토리에서 다시 볼 수 있어요)"
+              >
+                <Icon name="x" size={14} strokeWidth={2} />
+                닫기
+              </button>
+            </div>
           </div>
           <textarea
             value={draft}

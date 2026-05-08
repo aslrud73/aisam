@@ -741,13 +741,25 @@ export default function Page() {
               icon="check"
               title={`완성된 ${DOC_LABELS[docType].name}`}
               right={
-                <button
-                  onClick={copyAll}
-                  className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
-                >
-                  <Icon name="copy" size={14} strokeWidth={1.8} />
-                  {copiedId === "ALL" ? "전체 복사됨" : "전체 복사"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={copyAll}
+                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-ink hover:bg-ink-soft text-cream rounded-xl font-medium"
+                  >
+                    <Icon name="copy" size={14} strokeWidth={1.8} />
+                    {copiedId === "ALL" ? "전체 복사됨" : "전체 복사"}
+                  </button>
+                  <button
+                    onClick={() =>
+                      setNotes((prev) => ({ ...prev, [docType]: {} }))
+                    }
+                    className="inline-flex items-center gap-1.5 text-sm px-3.5 py-2 bg-paper hover:bg-warm-50 text-ink-soft border border-warm-200 rounded-xl font-medium"
+                    title="결과 영역 닫기 (누적 기록은 성장 리포트에 보존돼요)"
+                  >
+                    <Icon name="x" size={14} strokeWidth={2} />
+                    닫기
+                  </button>
+                </div>
               }
             />
             <div className="grid gap-4 sm:grid-cols-2">
