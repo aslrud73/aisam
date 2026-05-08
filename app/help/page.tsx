@@ -16,9 +16,9 @@ const SECTIONS: Section[] = [
     body: (
       <>
         <p>
-          쌤chat은 유치원·어린이집 선생님이 매일 작성해야 하는 글들을 AI가
+          쌤노트는 유치원·어린이집 선생님이 매일 작성해야 하는 글들을 AI가
           초안으로 만들어 드리는 앱이에요. 한 반(20명) 알림장을 사람이 직접 쓰면
-          1~2시간이 걸리지만, 쌤chat에서는 토글 몇 번과 짧은 메모 한 줄로
+          1~2시간이 걸리지만, 쌤노트에서는 토글 몇 번과 짧은 메모 한 줄로
           5분이면 모든 아이의 알림장이 자동으로 작성돼요.
         </p>
         <p>
@@ -192,7 +192,7 @@ const SECTIONS: Section[] = [
     body: (
       <>
         <p>
-          쌤chat은 모든 결과물에서 다음을 자동으로 걸러요. 단, 100% 보장은
+          쌤노트는 모든 결과물에서 다음을 자동으로 걸러요. 단, 100% 보장은
           아니므로 반드시 검토해 주세요.
         </p>
         <ul className="list-disc pl-5 space-y-1.5">
@@ -242,10 +242,10 @@ const SECTIONS: Section[] = [
   },
   {
     icon: "sparkle",
-    title: "쌤chat을 휴대폰에 앱처럼 설치하기",
+    title: "쌤노트를 휴대폰에 앱처럼 설치하기",
     body: (
       <>
-        <p>쌤chat은 PWA(웹앱)이라 휴대폰 홈 화면에 설치할 수 있어요.</p>
+        <p>쌤노트는 PWA(웹앱)이라 휴대폰 홈 화면에 설치할 수 있어요.</p>
         <ul className="list-disc pl-5 space-y-1.5">
           <li>
             <strong>아이폰</strong>: 사파리로 사이트 접속 → 화면 아래
@@ -330,7 +330,7 @@ export default function HelpPage() {
             사용 설명서
           </h1>
           <p className="text-sm text-ink-soft mt-1 leading-relaxed">
-            쌤chat을 처음 사용하시거나 기능을 더 알고 싶으실 때 펼쳐 보세요.
+            쌤노트를 처음 사용하시거나 기능을 더 알고 싶으실 때 펼쳐 보세요.
           </p>
         </div>
       </div>

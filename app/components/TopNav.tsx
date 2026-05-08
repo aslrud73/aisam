@@ -24,7 +24,7 @@ export function TopNav() {
           </span>
           <div className="leading-tight">
             <div className="text-[19px] font-extrabold text-ink group-hover:text-terracotta-600 transition tracking-tight">
-              쌤chat
+              쌤노트
             </div>
             <div className="text-[10.5px] text-ink-muted hidden sm:block -mt-0.5">
               선생님의 1시간을 돌려드립니다

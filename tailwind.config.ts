@@ -47,6 +47,30 @@ export default {
           500: "#637C62",
           600: "#4F634F",
         },
+        // === 쌤노트 시안 색상 (신규 추가) ===
+        coral: {
+          DEFAULT: "#E85A4F",
+          light: "#F58575",
+          bg: "#FCE8E5",
+        },
+        ssaem_sage: {
+          DEFAULT: "#5B8A6F",
+          light: "#8BB39A",
+          bg: "#E5EFE9",
+        },
+        mustard: {
+          DEFAULT: "#D4A537",
+          light: "#E8C467",
+          bg: "#FBF1D8",
+        },
+        lavender: {
+          DEFAULT: "#8B7BB5",
+          bg: "#ECE7F4",
+        },
+        navy: {
+          DEFAULT: "#2D4A6B",
+          bg: "#DCE6F0",
+        },
       },
       fontFamily: {
         display: ["'Gowun Dodum'", "'Pretendard'", "system-ui", "sans-serif"],
@@ -57,6 +81,7 @@ export default {
         "card-hover":
           "0 1px 2px rgba(42, 38, 32, 0.05), 0 8px 24px rgba(42, 38, 32, 0.06)",
         soft: "0 1px 0 rgba(42, 38, 32, 0.04)",
+        coral: "0 4px 14px rgba(232, 90, 79, 0.25)",
       },
       borderRadius: {
         "2xl": "1rem",
