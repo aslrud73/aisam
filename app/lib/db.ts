@@ -127,6 +127,10 @@ export async function deletePlayJournal(id: number): Promise<void> {
   await getDb().playJournals.delete(id);
 }
 
+export async function countKidEntries(kidId: string): Promise<number> {
+  return getDb().dailyEntries.where("kidId").equals(kidId).count();
+}
+
 export interface KidSummary {
   kidId: string;
   kidName: string;

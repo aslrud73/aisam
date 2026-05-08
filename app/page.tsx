@@ -4,7 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { getAuthHeaders, loadSettings } from "./lib/settings";
 import { SetupBanner } from "./components/SetupBanner";
 import { Icon, type IconName } from "./components/Icon";
-import { saveDailyEntries, todayISO, type DailyEntryRecord } from "./lib/db";
+import {
+  saveDailyEntries,
+  countKidEntries,
+  todayISO,
+  type DailyEntryRecord,
+} from "./lib/db";
 
 const ACTIVITY_EXAMPLES = [
   "예: 봄꽃 그리기 미술활동을 했고, 바깥놀이로 모래놀이를 했어요. 점심은 닭볶음탕.",
@@ -33,6 +38,26 @@ const GWANCHAL_MEMO_EXAMPLES = [
 
 function pickOne<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function hasName(list: { name: string }[], name: string): boolean {
+  const target = name.trim();
+  return list.some((c) => c.name.trim() === target);
+}
+
+/**
+ * Find the next available "name + number" so duplicates get a clean
+ * distinguishing suffix. Skips numbers already in use, e.g. if
+ * "민선" and "민선2" both exist, returns "민선3".
+ */
+function nextSuffixedName(
+  baseName: string,
+  list: { name: string }[],
+): string {
+  const base = baseName.trim();
+  let n = 2;
+  while (hasName(list, `${base}${n}`)) n++;
+  return `${base}${n}`;
 }
 
 type MealStatus = "잘먹음" | "보통" | "안먹음" | "";
@@ -170,8 +195,24 @@ export default function Page() {
   function addChild(name: string) {
     const trimmed = name.trim();
     if (!trimmed) return;
+
+    let finalName = trimmed;
+    if (hasName(children, trimmed)) {
+      const suggested = nextSuffixedName(trimmed, children);
+      const ok = confirm(
+        [
+          `이미 "${trimmed}"라는 아이가 있어요.`,
+          "",
+          "동일 이름의 아이를 한 명 더 등록하시려면 별도의 분류가 필요해요.",
+          `"${suggested}"(으)로 추가됩니다. 계속하시겠어요?`,
+        ].join("\n"),
+      );
+      if (!ok) return;
+      finalName = suggested;
+    }
+
     const id = uid();
-    setChildren((prev) => [...prev, { id, name: trimmed }]);
+    setChildren((prev) => [...prev, { id, name: finalName }]);
     setEntries((prev) => ({ ...prev, [id]: emptyEntry(id) }));
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -186,7 +227,23 @@ export default function Page() {
       .map((n) => n.trim())
       .filter(Boolean);
     if (names.length === 0) return;
-    const newChildren: Child[] = names.map((name) => ({ id: uid(), name }));
+
+    // Auto-suffix duplicates against the existing roster *and* against
+    // earlier entries in this same bulk batch.
+    const renamed: { from: string; to: string }[] = [];
+    const newChildren: Child[] = [];
+    const running: { name: string }[] = [...children];
+    for (const raw of names) {
+      let finalName = raw;
+      if (hasName(running, raw)) {
+        finalName = nextSuffixedName(raw, running);
+        renamed.push({ from: raw, to: finalName });
+      }
+      const child = { id: uid(), name: finalName };
+      newChildren.push(child);
+      running.push(child);
+    }
+
     setChildren((prev) => [...prev, ...newChildren]);
     setEntries((prev) => {
       const next = { ...prev };
@@ -199,6 +256,22 @@ export default function Page() {
       return next;
     });
     setBulkInput("");
+
+    if (renamed.length) {
+      const sample = renamed
+        .slice(0, 5)
+        .map((r) => `${r.from} → ${r.to}`)
+        .join("\n");
+      const more =
+        renamed.length > 5 ? `\n외 ${renamed.length - 5}명 더…` : "";
+      alert(
+        [
+          `이미 같은 이름이 있어 ${renamed.length}명은 자동으로 번호가 붙었어요.`,
+          "",
+          sample + more,
+        ].join("\n"),
+      );
+    }
   }
 
   function toggleSelected(id: string) {
@@ -218,7 +291,28 @@ export default function Page() {
     setSelectedIds(new Set());
   }
 
-  function removeChild(id: string) {
+  async function removeChild(id: string) {
+    const child = children.find((c) => c.id === id);
+    if (!child) return;
+
+    let entryCount = 0;
+    try {
+      entryCount = await countKidEntries(id);
+    } catch {
+      // If DB lookup fails, fall back to a generic message.
+    }
+
+    const lines = [
+      `${child.name}을(를) 명단에서 빼시겠어요?`,
+      "",
+      entryCount > 0
+        ? `• 누적된 알림장·관찰일지 ${entryCount}건은 성장 리포트에 그대로 보존돼요.`
+        : `• 아직 누적된 기록은 없어요.`,
+      "• 명단에서만 사라지고, 옛 기록은 성장 리포트에서 계속 볼 수 있어요.",
+      "• 같은 이름을 다시 추가하면 이전 기록과 분리된 새 유아로 등록됩니다.",
+    ];
+    if (!confirm(lines.join("\n"))) return;
+
     setChildren((prev) => prev.filter((c) => c.id !== id));
     setEntries((prev) => {
       const next = { ...prev };
