@@ -528,13 +528,13 @@ export default function Page() {
       return;
     }
     const hasActivity = todayActivity.trim() !== "";
-    const hasAnyMemo = todayChildren.some((c) => {
+    const hasAnyMemoText = todayChildren.some((c) => {
       const e = entries[c.id];
-      return !!(e && (e.meal || e.mood || e.nap || e.memo?.trim()));
+      return !!(e && e.memo?.trim());
     });
-    if (!hasActivity && !hasAnyMemo) {
+    if (!hasActivity && !hasAnyMemoText) {
       setError(
-        "오늘 활동이나 아이별 모습을 한 줄이라도 적어 주세요. AI가 만들 내용이 없어요.",
+        "오늘 활동이나 아이별 특이사항을 한 줄이라도 적어 주세요. (식사·기분·낮잠 토글만으로는 만들 내용이 부족해요.)",
       );
       return;
     }
