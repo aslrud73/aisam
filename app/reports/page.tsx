@@ -578,7 +578,7 @@ export default function ReportsPage() {
                               </button>
                             </div>
                             {open && (
-                              <div className="px-3 pb-3 pt-0 space-y-2 ml-7">
+                              <div className="px-3 pb-3 pt-0 space-y-2">
                                 {(e.meal || e.mood || e.nap || e.memo) && (
                                   <div className="flex flex-wrap gap-1.5 text-[11px] text-ink-muted">
                                     {e.meal && (
