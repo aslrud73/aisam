@@ -53,6 +53,7 @@ export default function ParentPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [historyVersion, setHistoryVersion] = useState(0);
 
   async function generate() {
     if (!parentMessage.trim()) {
@@ -93,7 +94,9 @@ export default function ParentPage() {
         provider: settings?.provider ?? "unknown",
         model: settings?.model ?? "unknown",
         createdAt: Date.now(),
-      }).catch(() => {});
+      })
+        .then(() => setHistoryVersion((v) => v + 1))
+        .catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {
@@ -276,6 +279,7 @@ export default function ParentPage() {
       )}
 
       <HistorySection
+        key={`parent-history-${historyVersion}`}
         title="지난 답변 기록"
         emptyMessage="아직 저장된 학부모 답변이 없어요. 답변 초안을 한 번 만들면 이곳에 자동으로 쌓입니다."
         load={async () => {

@@ -100,6 +100,7 @@ export default function PlayPage() {
   const [generating, setGenerating] = useState(false);
   const [journal, setJournal] = useState<PlayJournal | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [historyVersion, setHistoryVersion] = useState(0);
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -178,7 +179,9 @@ export default function PlayPage() {
         provider: settings?.provider ?? "unknown",
         model: settings?.model ?? "unknown",
         createdAt: Date.now(),
-      }).catch(() => {});
+      })
+        .then(() => setHistoryVersion((v) => v + 1))
+        .catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {
@@ -391,6 +394,7 @@ export default function PlayPage() {
       )}
 
       <HistorySection
+        key={`play-history-${historyVersion}`}
         title="지난 놀이기록"
         emptyMessage="아직 저장된 놀이기록이 없어요. 사진과 메모로 놀이기록을 한 번 만들면 이곳에 자동으로 쌓입니다."
         load={async () => {
