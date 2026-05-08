@@ -46,7 +46,7 @@ export interface ModelChoice {
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
   claude: "claude-sonnet-4-6",
   openai: "gpt-4o-mini",
-  gemini: "gemini-2.0-flash",
+  gemini: "gemini-flash-latest",
 };
 
 export const MODEL_CHOICES: Record<ProviderId, ModelChoice[]> = {
@@ -62,9 +62,9 @@ export const MODEL_CHOICES: Record<ProviderId, ModelChoice[]> = {
     { id: "gpt-4.1", label: "GPT-4.1", note: "최신 고품질" },
   ],
   gemini: [
-    { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash", note: "빠르고 저렴 (추천)" },
-    { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", note: "균형형" },
-    { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", note: "고품질" },
+    { id: "gemini-flash-latest", label: "Gemini Flash 최신 (자동)", note: "Google이 자동으로 최신 안정 Flash로 연결 (추천)" },
+    { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", note: "명시 버전 · 균형형" },
+    { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", note: "명시 버전 · 고품질" },
   ],
 };
 
