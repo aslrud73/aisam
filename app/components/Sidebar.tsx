@@ -56,7 +56,7 @@ export function Sidebar() {
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${
                         active
                           ? `${ACCENT_BG_SOFT[item.accent]} ${ACCENT_TEXT[item.accent]} font-semibold`
-                          : "text-ink-soft hover:bg-warm-50"
+                          : "text-ink-soft hover:bg-warm-50 font-medium"
                       }`}
                     >
                       <span className={active ? ACCENT_TEXT[item.accent] : "text-ink-muted"}>

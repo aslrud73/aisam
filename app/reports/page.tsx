@@ -356,7 +356,7 @@ export default function ReportsPage() {
       {loading ? (
         <div className="text-center text-ink-faint py-16">불러오는 중...</div>
       ) : kids.length === 0 ? (
-        <div className="bg-cream-100 border border-warm-100 rounded-2xl p-10 text-center text-sm text-ink-soft leading-relaxed shadow-card">
+        <div className="bg-cream-100 rounded-2xl p-10 text-center text-sm text-ink-soft leading-relaxed shadow-card">
           <p className="font-display text-base text-ink mb-2">아직 누적된 기록이 없어요</p>
           <p>
             "오늘 기록"에서 알림장이나 관찰일지를 한 번 이상 생성하면<br />
@@ -414,7 +414,7 @@ export default function ReportsPage() {
             </div>
 
             {presetId === "custom" && (
-              <div className="flex flex-wrap items-center gap-2 mb-3 bg-cream-100 border border-warm-100 rounded-xl px-3 py-2.5">
+              <div className="flex flex-wrap items-center gap-2 mb-3 bg-cream-100 rounded-xl px-3 py-2.5">
                 <span className="text-xs text-ink-muted">기간:</span>
                 <input
                   type="date"
@@ -484,7 +484,7 @@ export default function ReportsPage() {
           </Step>
 
           {visibleEntries.length > 0 && (
-            <details className="bg-paper rounded-2xl border border-warm-100 shadow-card group" open>
+            <details className="bg-paper rounded-2xl shadow-card group" open>
               <summary className="cursor-pointer list-none px-6 py-4 flex items-center justify-between gap-3">
                 <span className="inline-flex items-center gap-2.5 min-w-0">
                   <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-navy-50 text-navy-600 shrink-0">
@@ -511,7 +511,7 @@ export default function ReportsPage() {
                     <h3 className="text-xs font-semibold text-ink-muted mb-2 tracking-wide tabular-nums">
                       {ym} · {rows.length}건
                     </h3>
-                    <ul className="divide-y divide-warm-100 border border-warm-100 rounded-xl">
+                    <ul className="divide-y divide-warm-100 rounded-xl">
                       {rows.map((e) => {
                         const open = openEntryId === e.id;
                         const id = e.id;
@@ -582,22 +582,22 @@ export default function ReportsPage() {
                                 {(e.meal || e.mood || e.nap || e.memo) && (
                                   <div className="flex flex-wrap gap-1.5 text-[11px] text-ink-muted">
                                     {e.meal && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 border border-warm-100">
+                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
                                         식사 · {e.meal}
                                       </span>
                                     )}
                                     {e.mood && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 border border-warm-100">
+                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
                                         기분 · {e.mood}
                                       </span>
                                     )}
                                     {e.nap && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 border border-warm-100">
+                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
                                         낮잠 · {e.nap}
                                       </span>
                                     )}
                                     {e.memo && (
-                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 border border-warm-100">
+                                      <span className="px-2 py-0.5 rounded-full bg-cream-100 ">
                                         메모 · {e.memo}
                                       </span>
                                     )}
@@ -635,7 +635,7 @@ export default function ReportsPage() {
             </details>
           )}
 
-          <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+          <section className="bg-paper rounded-2xl p-6 shadow-card">
             <button
               onClick={generate}
               disabled={generating || reportEntries.length === 0 || !range}
@@ -666,7 +666,7 @@ export default function ReportsPage() {
           </section>
 
           {report && (
-            <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+            <section className="bg-paper rounded-2xl p-6 shadow-card">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
                   <span className="text-navy-500">
@@ -799,7 +799,7 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+    <section className="bg-paper rounded-2xl p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4">
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-navy-50 text-navy-700 text-sm font-semibold tabular-nums">
           {step}

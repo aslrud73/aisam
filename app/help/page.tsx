@@ -339,7 +339,7 @@ export default function HelpPage() {
         {SECTIONS.map((s, idx) => (
           <details
             key={idx}
-            className="bg-paper rounded-2xl border border-warm-100 shadow-card group"
+            className="bg-paper rounded-2xl shadow-card group"
             open={idx === 0}
           >
             <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between gap-3">
@@ -360,7 +360,7 @@ export default function HelpPage() {
         ))}
       </div>
 
-      <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+      <section className="bg-paper rounded-2xl p-6 shadow-card">
         <h2 className="text-base sm:text-lg font-semibold text-ink mb-4 inline-flex items-center gap-2">
           <span className="text-coral-500">
             <Icon name="info" size={18} strokeWidth={1.7} />
@@ -371,7 +371,7 @@ export default function HelpPage() {
           {FAQ.map((item, i) => (
             <details
               key={i}
-              className="bg-cream-100 border border-warm-100 rounded-xl group"
+              className="bg-cream-100 rounded-xl group"
             >
               <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-ink">Q. {item.q}</span>
@@ -387,7 +387,7 @@ export default function HelpPage() {
         </div>
       </section>
 
-      <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card flex items-center justify-between gap-4">
+      <section className="bg-paper rounded-2xl p-6 shadow-card flex items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold text-ink">시작할 준비됐어요?</h2>
           <p className="text-xs text-ink-muted mt-1">

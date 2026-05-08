@@ -136,7 +136,7 @@ export default function SettingsPage() {
       </div>
 
       {/* API 처음 사용 안내 */}
-      <details className="bg-cream-100 border border-warm-100 rounded-2xl shadow-card group">
+      <details className="bg-cream-100 rounded-2xl shadow-card group">
         <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2.5">
             <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-paper text-coral-600">
@@ -270,7 +270,7 @@ export default function SettingsPage() {
 
       {/* API 키 + 발급 가이드 */}
       <Step icon="key" step={3} title="API 키 등록">
-        <div className="bg-cream-100 rounded-2xl p-4 mb-4 border border-warm-100">
+        <div className="bg-cream-100 rounded-2xl p-4 mb-4 ">
           <p className="text-sm font-semibold text-ink mb-2 inline-flex items-center gap-1.5">
             <span className="text-coral-600">
               <Icon name="info" size={14} strokeWidth={1.8} />
@@ -314,7 +314,7 @@ export default function SettingsPage() {
         </div>
       </Step>
 
-      <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card flex flex-wrap gap-3 items-center">
+      <section className="bg-paper rounded-2xl p-6 shadow-card flex flex-wrap gap-3 items-center">
         <button
           onClick={save}
           disabled={!apiKey.trim()}
@@ -339,7 +339,7 @@ export default function SettingsPage() {
 
       <DataSection />
 
-      <section className="bg-cream-100 rounded-2xl border border-warm-100 p-6 text-sm text-ink-soft leading-relaxed space-y-2 shadow-card">
+      <section className="bg-cream-100 rounded-2xl p-6 text-sm text-ink-soft leading-relaxed space-y-2 shadow-card">
         <h3 className="text-base font-semibold text-ink mb-2 inline-flex items-center gap-2">
           <span className="text-sage-500">
             <Icon name="shield" size={16} strokeWidth={1.8} />
@@ -349,7 +349,7 @@ export default function SettingsPage() {
         <ul className="space-y-1.5 list-disc pl-5">
           <li>
             API 키는 <strong>이 기기의 브라우저</strong>에만 저장돼요 (
-            <code className="bg-paper px-1.5 py-0.5 rounded text-xs border border-warm-100">
+            <code className="bg-paper px-1.5 py-0.5 rounded text-xs ">
               localStorage
             </code>
             ). 저희 서버나 다른 기기에는 전송·저장되지 않아요.
@@ -384,7 +384,7 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+    <section className="bg-paper rounded-2xl p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4">
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-coral-50 text-coral-700 text-sm font-semibold tabular-nums">
           {step}

@@ -263,7 +263,7 @@ export default function PlayPage() {
             {images.map((img) => (
               <div
                 key={img.id}
-                className="relative group aspect-square rounded-xl overflow-hidden border border-warm-100"
+                className="relative group aspect-square rounded-xl overflow-hidden "
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -321,7 +321,7 @@ export default function PlayPage() {
         </div>
       </Step>
 
-      <div className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+      <div className="bg-paper rounded-2xl p-6 shadow-card">
         <button
           onClick={generate}
           disabled={generating}
@@ -350,7 +350,7 @@ export default function PlayPage() {
       </div>
 
       {journal && (
-        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+        <section className="bg-paper rounded-2xl p-6 shadow-card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
               <span className="text-lavender-500">
@@ -444,7 +444,7 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+    <section className="bg-paper rounded-2xl p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-lavender-50 text-lavender-700 text-sm font-semibold tabular-nums">
           {step}

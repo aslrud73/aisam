@@ -110,7 +110,7 @@ export function DataSection() {
   }
 
   return (
-    <section className="bg-paper rounded-2xl border border-warm-100 p-6 space-y-5 shadow-card">
+    <section className="bg-paper rounded-2xl p-6 space-y-5 shadow-card">
       <div>
         <h2 className="text-lg font-semibold text-ink">데이터 관리</h2>
         <p className="text-sm text-ink-soft mt-1 leading-relaxed">
@@ -120,7 +120,7 @@ export function DataSection() {
       </div>
 
       {counts && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center bg-cream-100 rounded-2xl p-4 border border-warm-100">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center bg-cream-100 rounded-2xl p-4 ">
           <div>
             <div className="text-2xl font-semibold text-ink tabular-nums">
               {counts.dailyEntries}

@@ -83,7 +83,7 @@ export function HistorySection({
   }
 
   return (
-    <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+    <section className="bg-paper rounded-2xl p-6 shadow-card">
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <h2 className="text-base sm:text-lg font-semibold text-ink inline-flex items-center gap-2">
           <span className="text-terracotta-500">
@@ -125,7 +125,7 @@ export function HistorySection({
                       {item.meta.map((m, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center px-2 py-0.5 rounded-full bg-cream-100 border border-warm-100 text-ink-soft"
+                          className="inline-flex items-center px-2 py-0.5 rounded-full bg-cream-100 text-ink-soft"
                         >
                           {m}
                         </span>

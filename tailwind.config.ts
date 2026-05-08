@@ -115,9 +115,9 @@ export default {
         sans: ["'Pretendard'", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(42, 38, 32, 0.04), 0 4px 12px rgba(42, 38, 32, 0.04)",
+        card: "0 1px 3px rgba(42, 38, 32, 0.05), 0 6px 18px rgba(42, 38, 32, 0.06)",
         "card-hover":
-          "0 1px 2px rgba(42, 38, 32, 0.05), 0 8px 24px rgba(42, 38, 32, 0.06)",
+          "0 2px 4px rgba(42, 38, 32, 0.06), 0 10px 28px rgba(42, 38, 32, 0.08)",
         soft: "0 1px 0 rgba(42, 38, 32, 0.04)",
         coral: "0 4px 14px rgba(232, 90, 79, 0.25)",
       },

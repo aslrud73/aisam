@@ -213,7 +213,7 @@ export default function ParentPage() {
         </div>
       </Step>
 
-      <div className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+      <div className="bg-paper rounded-2xl p-6 shadow-card">
         <button
           onClick={generate}
           disabled={generating}
@@ -240,7 +240,7 @@ export default function ParentPage() {
       </div>
 
       {draft && (
-        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+        <section className="bg-paper rounded-2xl p-6 shadow-card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
               <span className="text-mustard-500">
@@ -320,7 +320,7 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+    <section className="bg-paper rounded-2xl p-6 shadow-card">
       <div className="flex items-center gap-3 mb-4">
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-mustard-50 text-mustard-700 text-sm font-semibold tabular-nums">
           {step}

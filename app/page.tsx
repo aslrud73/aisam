@@ -653,7 +653,7 @@ export default function Page() {
       </div>
 
       <div className="max-w-4xl mx-auto px-5 pt-6 space-y-6">
-        <div className="bg-paper rounded-2xl border border-warm-100 p-1.5 grid grid-cols-2 gap-1 shadow-card">
+        <div className="bg-paper rounded-2xl p-1.5 grid grid-cols-2 gap-1 shadow-card">
           {(Object.keys(DOC_LABELS) as DocType[]).map((d) => {
             const active = docType === d;
             const info = DOC_LABELS[d];
@@ -680,7 +680,7 @@ export default function Page() {
           })}
         </div>
 
-        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+        <section className="bg-paper rounded-2xl p-6 shadow-card">
           <StepHeader
             step={1}
             icon="users"
@@ -784,7 +784,7 @@ export default function Page() {
               )}
 
               {activeChildren.length > 0 && editMode && (
-                <div className="space-y-2 mb-4 border border-warm-100 rounded-xl divide-y divide-warm-100">
+                <div className="space-y-2 mb-4 rounded-xl divide-y divide-warm-100">
                   {activeChildren.map((c) => (
                     <EditRosterRow
                       key={c.id}
@@ -894,7 +894,7 @@ export default function Page() {
                   return (
                     <div
                       key={c.id}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-warm-50 border border-warm-100 text-sm text-ink-muted"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-warm-50 text-sm text-ink-muted"
                     >
                       <span>{c.name}</span>
                       {last && (
@@ -926,7 +926,7 @@ export default function Page() {
           )}
         </section>
 
-        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+        <section className="bg-paper rounded-2xl p-6 shadow-card">
           <StepHeader step={2} icon="sun" title="오늘의 활동" />
           <textarea
             value={todayActivity}
@@ -941,7 +941,7 @@ export default function Page() {
         </section>
 
         {todayChildren.length > 0 && (
-          <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+          <section className="bg-paper rounded-2xl p-6 shadow-card">
             <StepHeader
               step={3}
               icon="pencil"
@@ -981,7 +981,7 @@ export default function Page() {
           </section>
         )}
 
-        <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+        <section className="bg-paper rounded-2xl p-6 shadow-card">
           <StepHeader step={4} icon="sparkle" title={`${DOC_LABELS[docType].name} 생성`} />
           <div className="flex flex-wrap items-center gap-2 mb-5">
             <span className="text-sm text-ink-muted mr-1">문체</span>
@@ -1036,7 +1036,7 @@ export default function Page() {
         </section>
 
         {Object.keys(notes[docType]).length > 0 && (
-          <section className="bg-paper rounded-2xl border border-warm-100 p-6 shadow-card">
+          <section className="bg-paper rounded-2xl p-6 shadow-card">
             <StepHeader
               step={5}
               icon="check"
@@ -1198,7 +1198,7 @@ function ChildRow({
   const isGwanchal = docType === "gwanchal";
   const placeholder = memoPlaceholder;
   return (
-    <div className="border border-warm-100 rounded-2xl p-3.5 bg-cream-50">
+    <div className="rounded-2xl p-3.5 bg-cream-50">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2.5">
         <span className="font-semibold text-ink min-w-[3.5rem]">{child.name}</span>
         {!isGwanchal && (
