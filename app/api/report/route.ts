@@ -18,24 +18,28 @@ interface EntryInput {
 
 interface RequestBody {
   kidName: string;
-  monthLabel: string; // e.g. "2026년 5월"
+  // Backward-compatible: older clients sent monthLabel. New clients send
+  // periodLabel for arbitrary spans (semesters, years, custom ranges).
+  monthLabel?: string;
+  periodLabel?: string;
   entries: EntryInput[];
 }
 
-const SYSTEM_PROMPT = `당신은 한국 유치원·어린이집의 베테랑 담임 교사이자 누리과정·표준보육과정 전문가입니다. 한 아이의 한 달치 알림장·관찰일지를 종합하여, 학부모님께 전달할 수 있는 따뜻하고 전문적인 월간 성장 리포트를 작성합니다.
+const SYSTEM_PROMPT = `당신은 한국 유치원·어린이집의 베테랑 담임 교사이자 누리과정·표준보육과정 전문가입니다. 한 아이의 일정 기간 누적 알림장·관찰일지를 종합하여, 학부모님께 전달할 수 있는 따뜻하고 전문적인 성장 리포트를 작성합니다. 기간은 한 달, 한 학기, 한 해 등 다양할 수 있으며, 사용자 메시지에 적힌 기간을 본문에 자연스럽게 반영해야 합니다.
 
-[월간 리포트 7개 섹션 — 모두 빠짐없이 작성]
+[성장 리포트 7개 섹션 — 모두 빠짐없이 작성]
 
 1. 인사말 (intro)
    - 학부모님께 보내는 따뜻한 인사로 시작 (2~3문장).
-   - 이번 달 아이의 전반적인 인상을 한 줄로 요약.
+   - 이 기간 아이의 전반적인 인상을 한 줄로 요약.
 
-2. 이번 달 관심 놀이 (interests)
+2. 이 기간 관심 놀이 (interests)
    - 입력 데이터에서 반복적으로 등장한 놀이·활동·관심사를 묶어 서술 (3~5문장).
    - "관찰된 모습" 중심으로, 단정·평가 없이.
 
 3. 또래 관계의 변화 (peerRelations)
    - 또래와의 상호작용 패턴, 함께 놀이한 모습, 갈등 해결 모습 (3~5문장).
+   - 기간이 길수록 변화 추이를 짚어 서술 (예: "초반에는 ~했으나 점차 ~").
    - 다른 아이 이름 절대 노출 금지 — "또래", "친구"로 통칭.
 
 4. 언어 표현 특징 (language)
@@ -47,10 +51,10 @@ const SYSTEM_PROMPT = `당신은 한국 유치원·어린이집의 베테랑 담
    - 식사·낮잠·컨디션 패턴이 있다면 함께 언급.
 
 6. 교사의 지원 내용 (teacherSupport)
-   - 이번 달 교사가 어떻게 지원했는지 구체적으로 (3~4문장).
+   - 이 기간 교사가 어떻게 지원했는지 구체적으로 (3~4문장).
    - "교사가 ~하도록 도왔습니다", "~할 수 있도록 환경을 마련했습니다" 등.
 
-7. 다음 달 가정 연계 제안 (homeConnection)
+7. 다음 단계 가정 연계 제안 (homeConnection)
    - 가정에서 함께해볼 수 있는 활동 2~3개 구체적으로 (4~6문장).
    - 부드러운 종결어미. "~해보시면 좋겠어요", "~함께 해보세요".
 
@@ -96,7 +100,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
   }
 
-  const { kidName, monthLabel, entries } = body;
+  const { kidName, monthLabel, periodLabel, entries } = body;
+  const period = periodLabel || monthLabel || "최근 기간";
   if (!kidName || !Array.isArray(entries) || entries.length === 0) {
     return NextResponse.json(
       { error: "리포트를 만들 데이터가 없어요." },
@@ -122,7 +127,7 @@ export async function POST(req: Request) {
 ${givenName} (조사 예시: ${particleHint(givenName)})
 
 [리포트 대상 기간]
-${monthLabel}
+${period}
 
 [이번 달 누적 기록 ${entries.length}건 — 시간순]
 

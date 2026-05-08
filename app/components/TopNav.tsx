@@ -8,7 +8,7 @@ const TABS: { href: string; label: string; icon: IconName }[] = [
   { href: "/", label: "오늘 기록", icon: "note" },
   { href: "/parent", label: "학부모 답변", icon: "chat" },
   { href: "/play", label: "놀이기록", icon: "camera" },
-  { href: "/reports", label: "월간 리포트", icon: "chart" },
+  { href: "/reports", label: "성장 리포트", icon: "chart" },
   { href: "/settings", label: "설정", icon: "settings" },
   { href: "/help", label: "사용 설명서", icon: "book" },
 ];
