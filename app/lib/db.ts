@@ -121,6 +121,10 @@ export async function saveDailyEntries(records: DailyEntryRecord[]) {
   await getDb().dailyEntries.bulkAdd(records);
 }
 
+export async function deleteDailyEntry(id: number): Promise<void> {
+  await getDb().dailyEntries.delete(id);
+}
+
 export async function saveParentReply(record: ParentReplyRecord) {
   await getDb().parentReplies.add(record);
 }
