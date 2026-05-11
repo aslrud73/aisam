@@ -1,7 +1,36 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Icon, type IconName } from "../components/Icon";
+
+function CopyablePrompt({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  };
+  return (
+    <div className="bg-cream-100 rounded-xl p-3.5 mt-2 space-y-2.5">
+      <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
+        {text}
+      </p>
+      <button
+        type="button"
+        onClick={copy}
+        className="inline-flex items-center gap-1.5 text-xs font-semibold bg-coral-100 hover:bg-coral-200 text-coral-700 rounded-lg px-3 py-1.5 transition"
+      >
+        <Icon name="copy" size={14} strokeWidth={1.8} />
+        {copied ? "복사됨!" : "프롬프트 복사"}
+      </button>
+    </div>
+  );
+}
 
 interface Section {
   icon: IconName;
@@ -62,6 +91,65 @@ const SECTIONS: Section[] = [
         <p>
           비용은 사용한 만큼만 결제돼요. 한 반(20명) 알림장을 매일 만들어도
           한 달 1,000~5,000원 수준이에요. Gemini는 일정 사용량까지 무료예요.
+        </p>
+      </>
+    ),
+  },
+  {
+    icon: "sparkle",
+    title: "API 키 발급이 어려우신가요? AI에게 물어보세요",
+    body: (
+      <>
+        <p>
+          API 키 발급 단계가 막막하시다면, <strong>챗GPT</strong>나{" "}
+          <strong>제미나이</strong> 같은 AI 챗봇에 아래 프롬프트를 그대로
+          복사해서 붙여넣어 보세요. 회원가입부터 키 복사까지 화면 위치를 짚어가며
+          아주 자세히 안내해줘요.
+        </p>
+        <CopyablePrompt
+          text={`나는 API에 대해 전혀 알지 못하는 사용자야. [Gemini / OpenAI / Claude 중 하나를 골라서 적어주세요] API 키를 발급받아서 사용할 수 있도록, 회원가입부터 결제 등록(또는 무료 가입), 키 복사까지 아주 자세히 단계별로 안내해줘. 가능하면 화면의 어디를 눌러야 하는지 위치도 함께 알려줘.`}
+        />
+        <p className="mt-3">
+          무료로 쓸 수 있는 AI 챗봇 (회원가입만 하면 바로 질문 가능):
+        </p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>
+            챗GPT —{" "}
+            <a
+              href="https://chatgpt.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-coral-600 underline underline-offset-2"
+            >
+              chatgpt.com
+            </a>
+          </li>
+          <li>
+            제미나이 —{" "}
+            <a
+              href="https://gemini.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-coral-600 underline underline-offset-2"
+            >
+              gemini.google.com
+            </a>
+          </li>
+          <li>
+            Claude —{" "}
+            <a
+              href="https://claude.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-coral-600 underline underline-offset-2"
+            >
+              claude.ai
+            </a>
+          </li>
+        </ul>
+        <p className="text-xs text-ink-muted mt-2">
+          답변이 어렵게 느껴지시면 "더 쉽게 설명해줘" 또는 "한 단계씩 천천히
+          알려줘"라고 다시 물어보세요.
         </p>
       </>
     ),
