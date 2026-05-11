@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createProvider, parseAuth, ProviderError } from "@/app/lib/providers";
+import { getGivenName, particleHint } from "@/app/lib/koreanName";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -65,6 +66,10 @@ const SYSTEM_PROMPT = `당신은 15년 경력의 한국 유치원·어린이집 
    - 변환: 다른 아이 이름 → "또래", "친구", "친구들"
    - 예: "지호를 밀었다" → "또래와의 놀이 중 갈등 상황이 있었습니다"
    - 본 답변의 주인공인 학부모님 자녀 이름만 등장 가능.
+   - 본문에 자녀 이름을 적을 때는 반드시 **이름(given name)** 만, 성(family name)은 절대 등장 금지.
+     · "김민선이는…" (X) → "민선이는…" (O)
+     · 받침 있음 → "○○이는, ○○이가, ○○이를"
+     · 받침 없음 → "○○는, ○○가, ○○를"
 
 4. 진단·평가·낙인 표현 금지
    - 금지: "공격성", "산만함", "발달 지연", "발달이 늦", "ADHD", "사회성이 부족", "성격이 ~", "문제 행동", "이상 행동"
@@ -133,7 +138,11 @@ ${toneGuide}
 ${parentMessage.trim()}
 
 [교사의 참고 정보]
-- 아이 이름: ${childName?.trim() || "(미입력)"}
+- 아이 이름(성 제외, 본문에 등장 가능): ${
+    childName?.trim()
+      ? `${getGivenName(childName.trim())} (조사 예시: ${particleHint(getGivenName(childName.trim()))})`
+      : "(미입력)"
+  }
 - 교사가 본 상황 / 답변에 담을 내용: ${extraContext?.trim() || "(미입력)"}
 
 위 5대 원칙을 철저히 준수해서, 이 학부모님께 보낼 답변 초안을 작성해 주세요.

@@ -2,7 +2,7 @@
 
 import Dexie, { type Table } from "dexie";
 
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 export interface DailyEntryRecord {
   id?: number;
@@ -55,10 +55,31 @@ export interface PlayJournalRecord {
   createdAt: number;
 }
 
+export interface GrowthReportRecord {
+  id?: number;
+  kidId: string;
+  kidName: string;
+  periodLabel: string;
+  periodFrom: string;
+  periodTo: string;
+  entryCount: number;
+  intro: string;
+  interests: string;
+  peerRelations: string;
+  language: string;
+  bodyAndEmotion: string;
+  teacherSupport: string;
+  homeConnection: string;
+  provider: string;
+  model: string;
+  createdAt: number;
+}
+
 class OneulDB extends Dexie {
   dailyEntries!: Table<DailyEntryRecord, number>;
   parentReplies!: Table<ParentReplyRecord, number>;
   playJournals!: Table<PlayJournalRecord, number>;
+  growthReports!: Table<GrowthReportRecord, number>;
 
   constructor() {
     super("oneul-db");
@@ -66,6 +87,13 @@ class OneulDB extends Dexie {
       dailyEntries: "++id, kidId, kidName, date, docType, createdAt, [kidId+date]",
       parentReplies: "++id, date, childName, situation, createdAt",
       playJournals: "++id, date, ageBand, createdAt",
+    });
+    this.version(2).stores({
+      // v1 tables stay as-is; v2 adds growthReports.
+      dailyEntries: "++id, kidId, kidName, date, docType, createdAt, [kidId+date]",
+      parentReplies: "++id, date, childName, situation, createdAt",
+      playJournals: "++id, date, ageBand, createdAt",
+      growthReports: "++id, kidId, kidName, periodFrom, periodTo, createdAt",
     });
   }
 }
@@ -93,12 +121,123 @@ export async function saveDailyEntries(records: DailyEntryRecord[]) {
   await getDb().dailyEntries.bulkAdd(records);
 }
 
+export async function deleteDailyEntry(id: number): Promise<void> {
+  await getDb().dailyEntries.delete(id);
+}
+
 export async function saveParentReply(record: ParentReplyRecord) {
   await getDb().parentReplies.add(record);
 }
 
 export async function savePlayJournal(record: PlayJournalRecord) {
   await getDb().playJournals.add(record);
+}
+
+export async function saveGrowthReport(record: GrowthReportRecord): Promise<number> {
+  return getDb().growthReports.add(record);
+}
+
+export async function listParentReplies(limit = 50): Promise<ParentReplyRecord[]> {
+  const rows = await getDb()
+    .parentReplies.orderBy("createdAt")
+    .reverse()
+    .limit(limit)
+    .toArray();
+  return rows;
+}
+
+export async function deleteParentReply(id: number): Promise<void> {
+  await getDb().parentReplies.delete(id);
+}
+
+export async function listPlayJournals(limit = 50): Promise<PlayJournalRecord[]> {
+  const rows = await getDb()
+    .playJournals.orderBy("createdAt")
+    .reverse()
+    .limit(limit)
+    .toArray();
+  return rows;
+}
+
+export async function deletePlayJournal(id: number): Promise<void> {
+  await getDb().playJournals.delete(id);
+}
+
+export async function listGrowthReports(opts?: {
+  kidId?: string;
+  limit?: number;
+}): Promise<GrowthReportRecord[]> {
+  const limit = opts?.limit ?? 50;
+  const db = getDb();
+  if (opts?.kidId) {
+    const rows = await db.growthReports
+      .where("kidId")
+      .equals(opts.kidId)
+      .reverse()
+      .sortBy("createdAt");
+    return rows.slice(0, limit);
+  }
+  const rows = await db.growthReports
+    .orderBy("createdAt")
+    .reverse()
+    .limit(limit)
+    .toArray();
+  return rows;
+}
+
+export async function deleteGrowthReport(id: number): Promise<void> {
+  await getDb().growthReports.delete(id);
+}
+
+export async function countKidEntries(kidId: string): Promise<number> {
+  return getDb().dailyEntries.where("kidId").equals(kidId).count();
+}
+
+/**
+ * Rename a child everywhere kidName is denormalized so reports and history
+ * lists pick up the new name. The kidId stays the same so existing records
+ * remain linked to this child.
+ */
+export async function renameKid(kidId: string, newName: string): Promise<void> {
+  const trimmed = newName.trim();
+  if (!trimmed) throw new Error("이름은 비울 수 없어요.");
+  const db = getDb();
+  await db.transaction("rw", [db.dailyEntries, db.growthReports], async () => {
+    await db.dailyEntries
+      .where("kidId")
+      .equals(kidId)
+      .modify({ kidName: trimmed });
+    await db.growthReports
+      .where("kidId")
+      .equals(kidId)
+      .modify({ kidName: trimmed });
+  });
+}
+
+export interface KidLastActivity {
+  kidId: string;
+  lastDate: string;
+  count: number;
+}
+
+/**
+ * Returns the most recent dailyEntry date and total entry count for every
+ * kidId that has at least one record. Used to surface "마지막 기록일" hints
+ * on the roster.
+ */
+export async function getLastActivityByKid(): Promise<Map<string, KidLastActivity>> {
+  const all = await getDb().dailyEntries.toArray();
+  const map = new Map<string, KidLastActivity>();
+  for (const e of all) {
+    const existing = map.get(e.kidId);
+    if (!existing) {
+      map.set(e.kidId, { kidId: e.kidId, lastDate: e.date, count: 1 });
+    } else {
+      existing.count += 1;
+      if (e.date > existing.lastDate) existing.lastDate = e.date;
+    }
+  }
+  return map;
 }
 
 export interface KidSummary {
@@ -150,28 +289,31 @@ export interface CountSummary {
   dailyEntries: number;
   parentReplies: number;
   playJournals: number;
+  growthReports: number;
 }
 
 export async function getCounts(): Promise<CountSummary> {
   const db = getDb();
-  const [d, p, pl] = await Promise.all([
+  const [d, p, pl, g] = await Promise.all([
     db.dailyEntries.count(),
     db.parentReplies.count(),
     db.playJournals.count(),
+    db.growthReports.count(),
   ]);
-  return { dailyEntries: d, parentReplies: p, playJournals: pl };
+  return { dailyEntries: d, parentReplies: p, playJournals: pl, growthReports: g };
 }
 
 export async function clearAllData(): Promise<void> {
   const db = getDb();
   await db.transaction(
     "rw",
-    [db.dailyEntries, db.parentReplies, db.playJournals],
+    [db.dailyEntries, db.parentReplies, db.playJournals, db.growthReports],
     async () => {
       await Promise.all([
         db.dailyEntries.clear(),
         db.parentReplies.clear(),
         db.playJournals.clear(),
+        db.growthReports.clear(),
       ]);
     },
   );
@@ -187,6 +329,7 @@ export interface BackupBundle {
     dailyEntries: DailyEntryRecord[];
     parentReplies: ParentReplyRecord[];
     playJournals: PlayJournalRecord[];
+    growthReports?: GrowthReportRecord[];
   };
 }
 
@@ -196,11 +339,13 @@ export async function exportAll(opts?: {
   includePhotos?: boolean;
 }): Promise<BackupBundle> {
   const db = getDb();
-  const [dailyEntries, parentReplies, playJournalsRaw] = await Promise.all([
-    db.dailyEntries.toArray(),
-    db.parentReplies.toArray(),
-    db.playJournals.toArray(),
-  ]);
+  const [dailyEntries, parentReplies, playJournalsRaw, growthReports] =
+    await Promise.all([
+      db.dailyEntries.toArray(),
+      db.parentReplies.toArray(),
+      db.playJournals.toArray(),
+      db.growthReports.toArray(),
+    ]);
   const playJournals = opts?.includePhotos
     ? playJournalsRaw
     : playJournalsRaw.map(({ photoThumbs: _omit, ...rest }) => rest);
@@ -215,6 +360,7 @@ export async function exportAll(opts?: {
       dailyEntries,
       parentReplies,
       playJournals,
+      growthReports,
     },
   };
 }
@@ -227,7 +373,9 @@ export async function importAll(
     throw new Error("백업 파일이 올바르지 않습니다.");
   }
   const b = bundle as Partial<BackupBundle>;
-  if (b.appVersion !== DB_VERSION) {
+  // Accept v1 (no growthReports) and current v2 bundles. Newer formats
+  // we don't yet understand are rejected.
+  if (b.appVersion !== 1 && b.appVersion !== DB_VERSION) {
     throw new Error(
       `지원하지 않는 백업 버전입니다 (파일: ${b.appVersion ?? "?"}, 앱: ${DB_VERSION})`,
     );
@@ -239,24 +387,87 @@ export async function importAll(
     return rest;
   };
 
-  const dailyEntries = (b.dbContent?.dailyEntries ?? []).map(cleanRecord);
+  // === 명단 매칭 (merge 모드) ===
+  // 같은 이름의 아이는 현재 기기 kidId로 매핑되어, import한 기록이
+  // 현재 기기 아이에 누적된다. 새 이름은 명단에 추가되고 id 그대로 유지.
+  // (별쫑/민경 시나리오: PC ↔ 스마트폰 양방향 수동 동기화 지원)
+  const idMap = new Map<string, string>();
+
+  if (mode === "merge" && b.localState?.notification) {
+    try {
+      const importedState = JSON.parse(b.localState.notification) as {
+        children?: { id: string; name: string }[];
+      };
+      const importedChildren = importedState.children ?? [];
+
+      const currentRaw = localStorage.getItem(NOTIFICATION_KEY);
+      const currentState = currentRaw
+        ? (JSON.parse(currentRaw) as {
+            children?: { id: string; name: string }[];
+          })
+        : null;
+      const currentChildren = currentState?.children ?? [];
+
+      const currentByName = new Map(
+        currentChildren.map((c) => [c.name.trim(), c.id]),
+      );
+
+      const mergedChildren = [...currentChildren];
+
+      for (const imp of importedChildren) {
+        const matchedId = currentByName.get(imp.name.trim());
+        if (matchedId) {
+          // 이름 동일 → 현재 기기 id로 매핑 (기록 통합)
+          idMap.set(imp.id, matchedId);
+        } else {
+          // 새 이름 → 명단에 추가, id 그대로
+          idMap.set(imp.id, imp.id);
+          mergedChildren.push({ id: imp.id, name: imp.name });
+        }
+      }
+
+      // 합친 명단 저장. 다른 필드(className, todayActivity, entries 등)는
+      // 현재 기기 우선 — 작성 중인 임시 입력을 보존하기 위해.
+      const baseState = currentState ?? importedState;
+      const merged = { ...baseState, children: mergedChildren };
+      localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(merged));
+    } catch {
+      // 파싱 실패 시 매핑 없이 진행 (기존 동작과 동일하게 fallback)
+    }
+  }
+
+  const remapKid = <T extends { kidId?: string }>(r: T): T => {
+    if (r.kidId && idMap.has(r.kidId)) {
+      return { ...r, kidId: idMap.get(r.kidId)! };
+    }
+    return r;
+  };
+
+  const dailyEntries = (b.dbContent?.dailyEntries ?? [])
+    .map(cleanRecord)
+    .map(remapKid);
   const parentReplies = (b.dbContent?.parentReplies ?? []).map(cleanRecord);
   const playJournals = (b.dbContent?.playJournals ?? []).map(cleanRecord);
+  const growthReports = (b.dbContent?.growthReports ?? [])
+    .map(cleanRecord)
+    .map(remapKid);
 
   await db.transaction(
     "rw",
-    [db.dailyEntries, db.parentReplies, db.playJournals],
+    [db.dailyEntries, db.parentReplies, db.playJournals, db.growthReports],
     async () => {
       if (mode === "replace") {
         await Promise.all([
           db.dailyEntries.clear(),
           db.parentReplies.clear(),
           db.playJournals.clear(),
+          db.growthReports.clear(),
         ]);
       }
       await db.dailyEntries.bulkAdd(dailyEntries as DailyEntryRecord[]);
       await db.parentReplies.bulkAdd(parentReplies as ParentReplyRecord[]);
       await db.playJournals.bulkAdd(playJournals as PlayJournalRecord[]);
+      await db.growthReports.bulkAdd(growthReports as GrowthReportRecord[]);
     },
   );
 
@@ -269,6 +480,7 @@ export async function importAll(
       dailyEntries: dailyEntries.length,
       parentReplies: parentReplies.length,
       playJournals: playJournals.length,
+      growthReports: growthReports.length,
     },
   };
 }
