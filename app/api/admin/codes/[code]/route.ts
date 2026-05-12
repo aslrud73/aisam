@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkAdmin } from "../../../../lib/adminAuth";
 import {
+  deleteLicense,
   reactivateLicense,
   resetDevices,
   revokeLicense,
@@ -64,6 +65,37 @@ export async function PATCH(
     }
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "작업 실패" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { code: string } },
+) {
+  if (!checkAdmin(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const code = decodeURIComponent(params.code);
+  try {
+    const removed = await deleteLicense(code);
+    if (!removed) {
+      return NextResponse.json(
+        { error: "코드를 찾을 수 없어요." },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    if (isStorageError(e)) {
+      return NextResponse.json(
+        { error: "저장소 연결이 안 되어 있어요." },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "삭제 실패" },
       { status: 500 },
     );
   }

@@ -149,6 +149,12 @@ export async function resetDevices(code: string): Promise<License | null> {
   return license;
 }
 
+export async function deleteLicense(code: string): Promise<boolean> {
+  const normalized = normalizeCode(code);
+  const removed = await redis().hdel(LICENSES_KEY, normalized);
+  return removed > 0;
+}
+
 export type RegisterResult =
   | { ok: true; license: License; alreadyRegistered: boolean }
   | { ok: false; reason: "not_found" | "revoked" | "device_limit" };

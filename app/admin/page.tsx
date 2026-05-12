@@ -271,6 +271,27 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     }
   };
 
+  const deleteLicenseEntry = async (code: string) => {
+    setActionError("");
+    try {
+      const res = await fetch(
+        `/api/admin/codes/${encodeURIComponent(code)}`,
+        {
+          method: "DELETE",
+          headers: authHeader(),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setActionError(data?.error ?? "삭제 실패");
+        return;
+      }
+      setLicenses((prev) => prev.filter((l) => l.code !== code));
+    } catch {
+      setActionError("연결에 문제가 있어요.");
+    }
+  };
+
   return (
     <main className="max-w-4xl mx-auto px-5 py-8 space-y-5">
       <div className="flex items-center justify-between gap-4">
@@ -499,6 +520,21 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         기기 초기화
                       </button>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          confirm(
+                            `${l.code} 코드를 영구 삭제할까요?\n\n주의: 되돌릴 수 없어요.\n발급 기록과 등록 기기 정보가 모두 사라져요.`,
+                          )
+                        ) {
+                          deleteLicenseEntry(l.code);
+                        }
+                      }}
+                      className="text-xs font-semibold bg-coral-50 hover:bg-coral-100 text-coral-700 border border-coral-200 rounded-lg px-2.5 py-1"
+                    >
+                      삭제
+                    </button>
                   </div>
                 </li>
               );
