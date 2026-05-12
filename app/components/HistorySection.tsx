@@ -14,6 +14,8 @@ export interface HistoryItem {
   preview?: string;
   /** full text shown when expanded; can be multi-section */
   detail: { label?: string; text: string }[];
+  /** optional thumbnail images shown above detail when expanded */
+  images?: string[];
 }
 
 const SITUATION_LABELS: Record<string, string> = {
@@ -151,6 +153,19 @@ export function HistorySection({
 
                 {open && (
                   <div className="px-2 pb-3 pt-1 space-y-3">
+                    {item.images && item.images.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {item.images.map((src, i) => (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={i}
+                            src={src}
+                            alt={`사진 ${i + 1}`}
+                            className="w-20 h-20 object-cover rounded-lg border border-warm-200"
+                          />
+                        ))}
+                      </div>
+                    )}
                     {item.detail.map((s, i) => (
                       <div key={i}>
                         {s.label && (

@@ -44,10 +44,13 @@ const MAX_IMAGES = 5;
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB raw — compressed before upload
 const MAX_LONG_EDGE = 1280;
 const JPEG_QUALITY = 0.85;
+const THUMB_LONG_EDGE = 256;
+const THUMB_JPEG_QUALITY = 0.7;
 
 interface UploadedImage {
   id: string;
-  dataUrl: string;
+  dataUrl: string; // 1280px — AI 호출용, 저장 안 함
+  thumbDataUrl: string; // 256px — IndexedDB 저장용 (다시 보기)
   name: string;
   size: number;
 }
@@ -78,28 +81,34 @@ function uid() {
 
 async function compressImage(file: File): Promise<{
   dataUrl: string;
+  thumbDataUrl: string;
   size: number;
 }> {
   const bitmap = await createImageBitmap(file);
-  const longEdge = Math.max(bitmap.width, bitmap.height);
-  const scale = longEdge > MAX_LONG_EDGE ? MAX_LONG_EDGE / longEdge : 1;
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
 
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("canvas context unavailable");
-  ctx.drawImage(bitmap, 0, 0, w, h);
+  function render(longEdge: number, quality: number): string {
+    const long = Math.max(bitmap.width, bitmap.height);
+    const scale = long > longEdge ? longEdge / long : 1;
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas context unavailable");
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    return canvas.toDataURL("image/jpeg", quality);
+  }
+
+  const dataUrl = render(MAX_LONG_EDGE, JPEG_QUALITY);
+  const thumbDataUrl = render(THUMB_LONG_EDGE, THUMB_JPEG_QUALITY);
   bitmap.close();
 
-  const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
-  // Estimate bytes from base64 length
+  // Estimate bytes from base64 length (full size, for upload size check)
   const base64 = dataUrl.split(",")[1] ?? "";
   const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
   const size = Math.floor((base64.length * 3) / 4) - padding;
-  return { dataUrl, size };
+  return { dataUrl, thumbDataUrl, size };
 }
 
 export default function PlayPage() {
@@ -139,10 +148,11 @@ export default function PlayPage() {
         continue;
       }
       try {
-        const { dataUrl, size } = await compressImage(f);
+        const { dataUrl, thumbDataUrl, size } = await compressImage(f);
         newImages.push({
           id: uid(),
           dataUrl,
+          thumbDataUrl,
           name: f.name,
           size,
         });
@@ -204,7 +214,7 @@ export default function PlayPage() {
         ageBand: age,
         note: note.trim() || undefined,
         ...data.journal,
-        photoThumbs: images.map((i) => i.dataUrl),
+        photoThumbs: images.map((i) => i.thumbDataUrl),
         provider: settings?.provider ?? "unknown",
         model: settings?.model ?? "unknown",
         createdAt: Date.now(),
@@ -367,8 +377,8 @@ export default function PlayPage() {
           </span>
           <p>
             AI가 사진과 메모를 종합해 작성한 초안입니다. 외부 공유 전 반드시
-            선생님이 검토해 주세요. 사진은 서버에 저장되지 않으며 생성 후 즉시
-            폐기됩니다.
+            선생님이 검토해 주세요. <strong>사진은 AI가 학습하지 않습니다.</strong>{" "}
+            단, 이 기기 안에 누적 기록 다시 보기용으로 보관됩니다.
           </p>
         </div>
         {error && (
@@ -473,6 +483,7 @@ export default function PlayPage() {
                 { label: "확장 놀이", text: r.extension },
                 { label: "가정 연계", text: r.homeConnection },
               ],
+              images: r.photoThumbs,
             }));
         }}
         onDelete={async (id) => {
