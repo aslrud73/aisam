@@ -8,6 +8,12 @@ import { Icon, type IconName } from "../components/Icon";
 import { ReportIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
+import { useDemo } from "../lib/demoContext";
+import {
+  SAMPLE_REPORT,
+  SAMPLE_REPORT_KID_NAME,
+  SAMPLE_REPORT_RANGE,
+} from "../lib/samples";
 import {
   listKidsWithEntries,
   getEntriesInRange,
@@ -147,6 +153,7 @@ function formatDate(date: string): string {
 }
 
 export default function ReportsPage() {
+  const demo = useDemo();
   const [kids, setKids] = useState<KidSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedKidId, setSelectedKidId] = useState<string | null>(null);
@@ -172,6 +179,20 @@ export default function ReportsPage() {
   const pendingAfterLicense = useRef<(() => void) | null>(null);
 
   useEffect(() => {
+    if (demo.active) {
+      const today = new Date().toISOString().slice(0, 10);
+      const demoKid: KidSummary = {
+        kidId: "sample-1",
+        kidName: SAMPLE_REPORT_KID_NAME,
+        entryCount: 20,
+        firstDate: "2026-04-01",
+        lastDate: today,
+      };
+      setKids([demoKid]);
+      setSelectedKidId(demoKid.kidId);
+      setLoading(false);
+      return;
+    }
     listKidsWithEntries()
       .then((rows) => {
         setKids(rows);
@@ -191,6 +212,27 @@ export default function ReportsPage() {
   useEffect(() => {
     if (!selectedKidId || !range) {
       setEntries([]);
+      return;
+    }
+    if (demo.active) {
+      const fake: DailyEntryRecord[] = Array.from({ length: 20 }, (_, i) => ({
+        id: 10000 + i,
+        kidId: "sample-1",
+        kidName: SAMPLE_REPORT_KID_NAME,
+        date: `2026-04-${String(i + 1).padStart(2, "0")}`,
+        docType: i % 2 === 0 ? "alrim" : "gwanchal",
+        meal: "보통",
+        mood: "좋음",
+        nap: "푹잠",
+        memo: "",
+        todayActivity: "",
+        text: "샘플 누적 기록",
+        provider: "demo",
+        model: "demo",
+        createdAt: Date.now() - 1000 * 60 * 60 * 24 * (20 - i),
+      }));
+      setEntries(fake);
+      setExcludedEntryIds(new Set());
       return;
     }
     getEntriesInRange(selectedKidId, range.from, range.to)
@@ -263,6 +305,15 @@ export default function ReportsPage() {
 
   async function generate() {
     if (!selectedKid || !range || reportEntries.length === 0) return;
+    if (demo.active) {
+      setGenerating(true);
+      setError(null);
+      setReport(null);
+      await new Promise((r) => setTimeout(r, 800));
+      setReport({ ...SAMPLE_REPORT });
+      setGenerating(false);
+      return;
+    }
     if (!isLicensed()) {
       pendingAfterLicense.current = () => generate();
       setLicenseModalOpen(true);
@@ -375,6 +426,7 @@ export default function ReportsPage() {
         </div>
       ) : (
         <>
+          <div className={demo.active ? "opacity-70 pointer-events-none space-y-5" : "space-y-5"}>
           <Step icon="users" step={1} title="아이 선택">
             <div className="flex flex-wrap gap-2">
               {kids.map((k) => {
@@ -644,6 +696,7 @@ export default function ReportsPage() {
               </div>
             </details>
           )}
+          </div>
 
           <section className="bg-paper rounded-2xl p-6 shadow-card">
             <button

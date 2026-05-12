@@ -8,6 +8,15 @@ import { Icon, type IconName } from "./components/Icon";
 import { AlrimIllust, GwanchalIllust, ClassIllust } from "./components/illustrations";
 import LicenseModal from "./components/LicenseModal";
 import { isLicensed } from "./lib/license";
+import { useDemo } from "./lib/demoContext";
+import {
+  DEMO_CHILDREN,
+  SAMPLE_ALRIM_BY_TONE,
+  SAMPLE_CLASS_NAME,
+  SAMPLE_ENTRIES,
+  SAMPLE_GWANCHAL_BY_TONE,
+  SAMPLE_TODAY_ACTIVITY,
+} from "./lib/samples";
 import {
   saveDailyEntries,
   countKidEntries,
@@ -155,6 +164,7 @@ function emptyEntry(childId: string): DailyEntry {
 }
 
 export default function Page() {
+  const demo = useDemo();
   const [className, setClassName] = useState("햇살반");
   const [children, setChildren] = useState<Child[]>([]);
   const [todayActivity, setTodayActivity] = useState("");
@@ -185,6 +195,34 @@ export default function Page() {
   const gwanchalMemoPlaceholder = useMemo(() => pickOne(GWANCHAL_MEMO_EXAMPLES), []);
 
   useEffect(() => {
+    if (demo.active) {
+      setClassName(SAMPLE_CLASS_NAME);
+      const demoKids = DEMO_CHILDREN.map((c) => ({ id: c.id, name: c.name }));
+      setChildren(demoKids);
+      setTodayActivity(SAMPLE_TODAY_ACTIVITY);
+      setEntries(
+        Object.fromEntries(
+          demoKids.map((c) => {
+            const e = SAMPLE_ENTRIES[c.id];
+            return [
+              c.id,
+              e
+                ? {
+                    childId: c.id,
+                    meal: e.meal,
+                    mood: e.mood,
+                    nap: e.nap,
+                    memo: e.memo,
+                  }
+                : emptyEntry(c.id),
+            ];
+          }),
+        ),
+      );
+      setSelectedIds(new Set(demoKids.map((c) => c.id)));
+      setHydrated(true);
+      return;
+    }
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -210,6 +248,7 @@ export default function Page() {
     } catch {}
     setHydrated(true);
     refreshLastActivity();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function refreshLastActivity() {
@@ -222,7 +261,7 @@ export default function Page() {
   }
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || demo.active) return;
     const state: PersistedState = {
       className,
       children,
@@ -233,7 +272,7 @@ export default function Page() {
       selectedIds: Array.from(selectedIds),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [hydrated, className, children, todayActivity, entries, tone, docType, selectedIds]);
+  }, [demo.active, hydrated, className, children, todayActivity, entries, tone, docType, selectedIds]);
 
   function requireLicense(action: () => void): boolean {
     if (isLicensed()) return true;
@@ -535,6 +574,21 @@ export default function Page() {
   }
 
   async function generate() {
+    if (demo.active) {
+      setError(null);
+      setGenerating(true);
+      await new Promise((r) => setTimeout(r, 800));
+      const map = docType === "alrim" ? SAMPLE_ALRIM_BY_TONE : SAMPLE_GWANCHAL_BY_TONE;
+      const base = map[tone as keyof typeof map] ?? map.warm;
+      setNotes((prev) => ({
+        ...prev,
+        [docType]: Object.fromEntries(
+          children.map((c) => [c.id, base.replace(/민준/g, c.name)]),
+        ),
+      }));
+      setGenerating(false);
+      return;
+    }
     if (!requireLicense(() => generate())) return;
     const activeNow = children.filter((c) => !c.archived);
     const anonSelected = selectedIds.has(ANONYMOUS_KID_ID);
@@ -722,7 +776,7 @@ export default function Page() {
           })}
         </div>
 
-        <section className="bg-paper rounded-2xl p-6 shadow-card">
+        <section className={`bg-paper rounded-2xl p-6 shadow-card ${demo.active ? "opacity-70 pointer-events-none" : ""}`}>
           <StepHeader
             step={1}
             icon="users"
@@ -1009,7 +1063,7 @@ export default function Page() {
           )}
         </section>
 
-        <section className="bg-paper rounded-2xl p-6 shadow-card">
+        <section className={`bg-paper rounded-2xl p-6 shadow-card ${demo.active ? "opacity-70 pointer-events-none" : ""}`}>
           <StepHeader step={2} icon="sun" title="오늘의 활동" />
           <textarea
             value={todayActivity}
@@ -1024,7 +1078,7 @@ export default function Page() {
         </section>
 
         {todayChildren.length > 0 && (
-          <section className="bg-paper rounded-2xl p-6 shadow-card">
+          <section className={`bg-paper rounded-2xl p-6 shadow-card ${demo.active ? "opacity-70 pointer-events-none" : ""}`}>
             <StepHeader
               step={3}
               icon="pencil"

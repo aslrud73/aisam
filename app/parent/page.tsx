@@ -8,6 +8,13 @@ import { Icon, type IconName } from "../components/Icon";
 import { ParentIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
+import { useDemo } from "../lib/demoContext";
+import {
+  DEMO_PARENT_HISTORY,
+  SAMPLE_PARENT_MESSAGE,
+  SAMPLE_PARENT_REPLY_BY_TONE,
+  type DemoToneParent,
+} from "../lib/samples";
 import {
   saveParentReply,
   listParentReplies,
@@ -48,10 +55,15 @@ const TONES: { id: Tone; label: string }[] = [
 ];
 
 export default function ParentPage() {
-  const [parentMessage, setParentMessage] = useState("");
-  const [childName, setChildName] = useState("");
+  const demo = useDemo();
+  const [parentMessage, setParentMessage] = useState(
+    demo.active ? SAMPLE_PARENT_MESSAGE : "",
+  );
+  const [childName, setChildName] = useState(demo.active ? "민준" : "");
   const [extraContext, setExtraContext] = useState("");
-  const [situation, setSituation] = useState<Situation>("general");
+  const [situation, setSituation] = useState<Situation>(
+    demo.active ? "conflict" : "general",
+  );
   const [tone, setTone] = useState<Tone>("warm");
   const [draft, setDraft] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -64,6 +76,16 @@ export default function ParentPage() {
   async function generate() {
     if (!parentMessage.trim()) {
       setError("학부모님이 보내신 메시지를 먼저 입력해 주세요.");
+      return;
+    }
+    if (demo.active) {
+      setError(null);
+      setGenerating(true);
+      setDraft("");
+      await new Promise((r) => setTimeout(r, 800));
+      const map = SAMPLE_PARENT_REPLY_BY_TONE;
+      setDraft(map[tone as DemoToneParent] ?? map.warm);
+      setGenerating(false);
       return;
     }
     if (!isLicensed()) {
@@ -138,6 +160,7 @@ export default function ParentPage() {
         </div>
       </div>
 
+      <div className={demo.active ? "opacity-70 pointer-events-none" : ""}>
       <Step icon="chat" step={1} title="학부모님이 보내신 메시지">
         <textarea
           value={parentMessage}
@@ -201,6 +224,7 @@ export default function ParentPage() {
           </div>
         </div>
       </Step>
+      </div>
 
       <Step icon="sparkle" step={4} title="어떤 톤으로?">
         <div className="flex flex-wrap gap-2">
@@ -290,10 +314,26 @@ export default function ParentPage() {
       )}
 
       <HistorySection
-        key={`parent-history-${historyVersion}`}
+        key={`parent-history-${historyVersion}-${demo.active ? "demo" : "real"}`}
         title="지난 답변 기록"
         emptyMessage="아직 저장된 학부모 답변이 없어요. 답변 초안을 한 번 만들면 이곳에 자동으로 쌓입니다."
         load={async () => {
+          if (demo.active) {
+            const h = DEMO_PARENT_HISTORY;
+            return [
+              {
+                id: h.id,
+                createdAt: h.createdAt,
+                meta: [situationLabel(h.situation), h.childName],
+                title: h.parentMessage.replace(/\s+/g, " ").slice(0, 60),
+                preview: h.draft.replace(/\s+/g, " ").slice(0, 80),
+                detail: [
+                  { label: "학부모님 메시지", text: h.parentMessage },
+                  { label: "답변 초안", text: h.draft },
+                ],
+              },
+            ];
+          }
           const rows = await listParentReplies(50);
           return rows
             .filter((r): r is typeof r & { id: number } => r.id !== undefined)
@@ -311,6 +351,7 @@ export default function ParentPage() {
             }));
         }}
         onDelete={async (id) => {
+          if (demo.active) return;
           await deleteParentReply(id);
         }}
       />

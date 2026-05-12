@@ -8,6 +8,12 @@ import { Icon, type IconName } from "../components/Icon";
 import { PlayIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
+import { useDemo } from "../lib/demoContext";
+import {
+  DEMO_PLAY_HISTORY,
+  SAMPLE_PLAY_INPUT,
+  SAMPLE_PLAY_JOURNAL,
+} from "../lib/samples";
 import {
   savePlayJournal,
   listPlayJournals,
@@ -97,10 +103,13 @@ async function compressImage(file: File): Promise<{
 }
 
 export default function PlayPage() {
+  const demo = useDemo();
   const [images, setImages] = useState<UploadedImage[]>([]);
-  const [note, setNote] = useState("");
-  const [age, setAge] = useState("3");
-  const [activityName, setActivityName] = useState("");
+  const [note, setNote] = useState(demo.active ? SAMPLE_PLAY_INPUT.note : "");
+  const [age, setAge] = useState(demo.active ? SAMPLE_PLAY_INPUT.age : "3");
+  const [activityName, setActivityName] = useState(
+    demo.active ? SAMPLE_PLAY_INPUT.activityName : "",
+  );
   const [generating, setGenerating] = useState(false);
   const [journal, setJournal] = useState<PlayJournal | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -149,6 +158,15 @@ export default function PlayPage() {
   }
 
   async function generate() {
+    if (demo.active) {
+      setError(null);
+      setGenerating(true);
+      setJournal(null);
+      await new Promise((r) => setTimeout(r, 800));
+      setJournal(SAMPLE_PLAY_JOURNAL);
+      setGenerating(false);
+      return;
+    }
     if (images.length === 0 && !note.trim()) {
       setError("사진을 첨부하거나 메모를 입력해 주세요.");
       return;
@@ -230,6 +248,7 @@ export default function PlayPage() {
           </p>
         </div>
       </div>
+      <div className={demo.active ? "opacity-70 pointer-events-none" : ""}>
       <Step
         icon="camera"
         step={1}
@@ -329,6 +348,7 @@ export default function PlayPage() {
           })}
         </div>
       </Step>
+      </div>
 
       <div className="bg-paper rounded-2xl p-6 shadow-card">
         <button
@@ -404,10 +424,34 @@ export default function PlayPage() {
       )}
 
       <HistorySection
-        key={`play-history-${historyVersion}`}
+        key={`play-history-${historyVersion}-${demo.active ? "demo" : "real"}`}
         title="지난 놀이기록"
         emptyMessage="아직 저장된 놀이기록이 없어요. 사진과 메모로 놀이기록을 한 번 만들면 이곳에 자동으로 쌓입니다."
         load={async () => {
+          if (demo.active) {
+            const h = DEMO_PLAY_HISTORY;
+            return [
+              {
+                id: h.id,
+                createdAt: h.createdAt,
+                meta: [
+                  AGE_LABELS[h.age] ?? `${h.age}세`,
+                  h.activityName,
+                ],
+                title: h.journal.theme.replace(/\s+/g, " ").slice(0, 60),
+                preview: h.journal.flow.replace(/\s+/g, " ").slice(0, 80),
+                detail: [
+                  { label: "놀이 주제", text: h.journal.theme },
+                  { label: "놀이 흐름", text: h.journal.flow },
+                  { label: "유아의 반응", text: h.journal.reactions },
+                  { label: "배움 요소 (누리과정)", text: h.journal.learning },
+                  { label: "교사 지원", text: h.journal.support },
+                  { label: "확장 놀이", text: h.journal.extension },
+                  { label: "가정 연계", text: h.journal.homeConnection },
+                ],
+              },
+            ];
+          }
           const rows = await listPlayJournals(50);
           return rows
             .filter((r): r is typeof r & { id: number } => r.id !== undefined)
@@ -432,6 +476,7 @@ export default function PlayPage() {
             }));
         }}
         onDelete={async (id) => {
+          if (demo.active) return;
           await deletePlayJournal(id);
         }}
       />
