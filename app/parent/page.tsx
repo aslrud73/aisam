@@ -8,11 +8,6 @@ import { Icon, type IconName } from "../components/Icon";
 import { ParentIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
-import { SampleBanner, TrySampleButton } from "../components/SampleBanner";
-import {
-  SAMPLE_PARENT_MESSAGE,
-  SAMPLE_PARENT_REPLY,
-} from "../lib/samples";
 import {
   saveParentReply,
   listParentReplies,
@@ -65,42 +60,10 @@ export default function ParentPage() {
   const [historyVersion, setHistoryVersion] = useState(0);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const pendingAfterLicense = useRef<(() => void) | null>(null);
-  const [sampleMode, setSampleMode] = useState(false);
-
-  function loadSample() {
-    setParentMessage(SAMPLE_PARENT_MESSAGE);
-    setSituation("conflict");
-    setTone("warm");
-    setChildName("민준");
-    setExtraContext("");
-    setDraft("");
-    setError(null);
-    setSampleMode(true);
-  }
-
-  function clearSample() {
-    setParentMessage("");
-    setSituation("general");
-    setTone("warm");
-    setChildName("");
-    setExtraContext("");
-    setDraft("");
-    setError(null);
-    setSampleMode(false);
-  }
 
   async function generate() {
     if (!parentMessage.trim()) {
       setError("학부모님이 보내신 메시지를 먼저 입력해 주세요.");
-      return;
-    }
-    if (sampleMode) {
-      setError(null);
-      setGenerating(true);
-      setDraft("");
-      await new Promise((r) => setTimeout(r, 800));
-      setDraft(SAMPLE_PARENT_REPLY);
-      setGenerating(false);
       return;
     }
     if (!isLicensed()) {
@@ -161,7 +124,6 @@ export default function ParentPage() {
 
   return (
     <main data-page="parent" className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
-      {sampleMode && <SampleBanner onClear={clearSample} />}
       <SetupBanner />
       <div className="flex items-start gap-3">
         <span className="shrink-0">
@@ -175,84 +137,70 @@ export default function ParentPage() {
           </p>
         </div>
       </div>
-      {!sampleMode && !parentMessage && !draft && (
-        <div className="flex justify-end">
-          <TrySampleButton
-            onClick={loadSample}
-            label="체험해보기 (샘플 답변)"
-          />
-        </div>
-      )}
 
-      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
-        <Step icon="chat" step={1} title="학부모님이 보내신 메시지">
-          <textarea
-            value={parentMessage}
-            onChange={(e) => setParentMessage(e.target.value)}
-            placeholder="예: 우리 아이가 어제부터 어린이집 가기 싫다고 자꾸 우는데, 혹시 친구랑 무슨 일 있었나요? 선생님이 잘 살펴봐 주시는 건지 걱정이 됩니다."
-            rows={5}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none resize-none"
-          />
-        </Step>
-      </div>
+      <Step icon="chat" step={1} title="학부모님이 보내신 메시지">
+        <textarea
+          value={parentMessage}
+          onChange={(e) => setParentMessage(e.target.value)}
+          placeholder="예: 우리 아이가 어제부터 어린이집 가기 싫다고 자꾸 우는데, 혹시 친구랑 무슨 일 있었나요? 선생님이 잘 살펴봐 주시는 건지 걱정이 됩니다."
+          rows={5}
+          className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none resize-none"
+        />
+      </Step>
 
-      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
-        <Step icon="info" step={2} title="어떤 상황인가요?">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {SITUATIONS.map((s) => {
-              const active = situation === s.id;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => setSituation(s.id)}
-                  className={`px-3 py-2.5 rounded-xl border text-left transition ${
-                    active
-                      ? "bg-mustard-500 text-white border-mustard-500 shadow-sm"
-                      : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
+      <Step icon="info" step={2} title="어떤 상황인가요?">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {SITUATIONS.map((s) => {
+            const active = situation === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setSituation(s.id)}
+                className={`px-3 py-2.5 rounded-xl border text-left transition ${
+                  active
+                    ? "bg-mustard-500 text-white border-mustard-500 shadow-sm"
+                    : "bg-paper text-ink-soft border-warm-200 hover:border-warm-300 hover:bg-warm-50"
+                }`}
+              >
+                <div className="text-sm font-medium">{s.label}</div>
+                <div
+                  className={`text-[11px] mt-0.5 ${
+                    active ? "text-white/85" : "text-ink-muted"
                   }`}
                 >
-                  <div className="text-sm font-medium">{s.label}</div>
-                  <div
-                    className={`text-[11px] mt-0.5 ${
-                      active ? "text-white/85" : "text-ink-muted"
-                    }`}
-                  >
-                    {s.hint}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </Step>
-      </div>
+                  {s.hint}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </Step>
 
-      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
-        <Step icon="pencil" step={3} title="참고 정보 (선택)">
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-ink-muted mb-1 block">아이 이름</label>
-              <input
-                value={childName}
-                onChange={(e) => setChildName(e.target.value)}
-                placeholder="예: 지우"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink-muted mb-1 block">
-                교사가 본 상황 / 답변에 꼭 담을 내용
-              </label>
-              <textarea
-                value={extraContext}
-                onChange={(e) => setExtraContext(e.target.value)}
-                placeholder="예: 어제 점심 후 인형놀이 중 또래와 차례 다툼이 있었음. 교사가 중재하여 잘 마무리됨. 콧물도 살짝 있어 컨디션이 평소보다 떨어진 것으로 보임."
-                rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none resize-none"
-              />
-            </div>
+      <Step icon="pencil" step={3} title="참고 정보 (선택)">
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-ink-muted mb-1 block">아이 이름</label>
+            <input
+              value={childName}
+              onChange={(e) => setChildName(e.target.value)}
+              placeholder="예: 지우"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none"
+            />
           </div>
-        </Step>
-      </div>
+          <div>
+            <label className="text-xs text-ink-muted mb-1 block">
+              교사가 본 상황 / 답변에 꼭 담을 내용
+            </label>
+            <textarea
+              value={extraContext}
+              onChange={(e) => setExtraContext(e.target.value)}
+              placeholder="예: 어제 점심 후 인형놀이 중 또래와 차례 다툼이 있었음. 교사가 중재하여 잘 마무리됨. 콧물도 살짝 있어 컨디션이 평소보다 떨어진 것으로 보임."
+              rows={3}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none resize-none"
+            />
+          </div>
+        </div>
+      </Step>
 
       <Step icon="sparkle" step={4} title="어떤 톤으로?">
         <div className="flex flex-wrap gap-2">

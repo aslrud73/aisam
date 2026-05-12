@@ -50,6 +50,15 @@ export const NAV_ITEMS: NavItem[] = [
     inBottomTab: true,
   },
   {
+    href: "/demo",
+    label: "체험해보기",
+    shortLabel: "체험",
+    icon: "sparkle",
+    accent: "neutral",
+    category: "manage",
+    inBottomTab: false,
+  },
+  {
     href: "/settings",
     label: "설정",
     shortLabel: "설정",

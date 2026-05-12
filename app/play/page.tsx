@@ -8,11 +8,6 @@ import { Icon, type IconName } from "../components/Icon";
 import { PlayIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
-import { SampleBanner, TrySampleButton } from "../components/SampleBanner";
-import {
-  SAMPLE_PLAY_INPUT,
-  SAMPLE_PLAY_JOURNAL,
-} from "../lib/samples";
 import {
   savePlayJournal,
   listPlayJournals,
@@ -114,27 +109,6 @@ export default function PlayPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const pendingAfterLicense = useRef<(() => void) | null>(null);
-  const [sampleMode, setSampleMode] = useState(false);
-
-  function loadSample() {
-    setImages([]);
-    setNote(SAMPLE_PLAY_INPUT.note);
-    setAge(SAMPLE_PLAY_INPUT.age);
-    setActivityName(SAMPLE_PLAY_INPUT.activityName);
-    setJournal(null);
-    setError(null);
-    setSampleMode(true);
-  }
-
-  function clearSample() {
-    setImages([]);
-    setNote("");
-    setAge("3");
-    setActivityName("");
-    setJournal(null);
-    setError(null);
-    setSampleMode(false);
-  }
 
   async function handleFiles(files: FileList | null) {
     if (!files) return;
@@ -177,15 +151,6 @@ export default function PlayPage() {
   async function generate() {
     if (images.length === 0 && !note.trim()) {
       setError("사진을 첨부하거나 메모를 입력해 주세요.");
-      return;
-    }
-    if (sampleMode) {
-      setError(null);
-      setGenerating(true);
-      setJournal(null);
-      await new Promise((r) => setTimeout(r, 800));
-      setJournal(SAMPLE_PLAY_JOURNAL);
-      setGenerating(false);
       return;
     }
     if (!isLicensed()) {
@@ -252,7 +217,6 @@ export default function PlayPage() {
 
   return (
     <main data-page="play" className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
-      {sampleMode && <SampleBanner onClear={clearSample} />}
       <SetupBanner />
       <div className="flex items-start gap-3">
         <span className="shrink-0">
@@ -266,16 +230,6 @@ export default function PlayPage() {
           </p>
         </div>
       </div>
-      {!sampleMode && !journal && images.length === 0 && !note && (
-        <div className="flex justify-end">
-          <TrySampleButton
-            onClick={loadSample}
-            label="체험해보기 (샘플 놀이기록)"
-          />
-        </div>
-      )}
-
-      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
       <Step
         icon="camera"
         step={1}
@@ -338,9 +292,7 @@ export default function PlayPage() {
           </div>
         )}
       </Step>
-      </div>
 
-      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
       <Step icon="pencil" step={2} title="놀이 메모 (선택)">
         <input
           value={activityName}
@@ -356,9 +308,7 @@ export default function PlayPage() {
           className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-lavender-400 focus:ring-2 focus:ring-lavender-100 focus:outline-none resize-none"
         />
       </Step>
-      </div>
 
-      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
       <Step icon="users" step={3} title="연령">
         <div className="flex flex-wrap gap-2">
           {AGE_OPTIONS.map((a) => {
@@ -379,7 +329,6 @@ export default function PlayPage() {
           })}
         </div>
       </Step>
-      </div>
 
       <div className="bg-paper rounded-2xl p-6 shadow-card">
         <button

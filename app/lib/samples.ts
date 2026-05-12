@@ -1,5 +1,3 @@
-export const SAMPLE_FLAG_KEY = "ssaem-sample-mode-v1";
-
 export interface SampleChild {
   id: string;
   name: string;
@@ -121,6 +119,35 @@ export const SAMPLE_PLAY_JOURNAL = {
 export const SAMPLE_REPORT_KID_NAME = "민준";
 export const SAMPLE_REPORT_RANGE = "2026-04-01 ~ 2026-04-30";
 
+export type DemoToneAlrim = "warm" | "concise" | "detailed";
+export type DemoToneParent = "warm" | "careful" | "concise";
+
+export const SAMPLE_ALRIM_BY_TONE: Record<DemoToneAlrim, string> = {
+  warm:
+    "안녕하세요, 햇살반입니다. 오늘 민준이는 봄꽃 그리기와 모래놀이를 했어요. 친구들과 블록으로 즐겁게 놀이했고, 모래놀이에서는 모래성 쌓기를 주도하며 활기차게 참여했어요. 닭볶음탕도 맛있게 잘 먹고 낮잠도 푹 잤어요. 오늘 하루도 즐겁게 보냈답니다.",
+  concise:
+    "민준이, 오늘 봄꽃 그리기·모래놀이 활동에 활기차게 참여했어요. 모래성 쌓기를 주도하는 모습이 좋았어요. 점심·낮잠 모두 양호했습니다.",
+  detailed:
+    "안녕하세요, 햇살반입니다. 오늘 민준이는 봄꽃 그리기 미술활동에서 색의 조합을 다양하게 시도하며 자기만의 봄 풍경을 표현했고, 바깥 모래놀이에서는 친구들에게 \"성을 같이 만들자\"고 먼저 제안하며 협력 놀이를 주도했어요. 모래성이 무너졌을 때도 \"다시 만들면 돼\" 하고 차분히 재도전하는 회복탄력성이 인상적이었습니다. 점심으로 나온 닭볶음탕도 한 그릇을 다 비워냈고, 낮잠도 충분히 푹 잤어요. 오늘 하루 또래와의 관계 안에서 자신감 있게 활동에 임하는 모습이 돋보였답니다.",
+};
+
+export const SAMPLE_GWANCHAL_BY_TONE: Record<DemoToneAlrim, string> = {
+  warm:
+    "민준이는 오늘 봄꽃 그리기와 바깥 모래놀이에 활기차게 참여하며 또래와의 협력 놀이가 자연스럽게 이어졌어요. 모래성 쌓기를 친구들과 함께 시작하면서 자신의 역할을 자발적으로 정하는 모습이 보였고, 친구가 제안한 아이디어도 기꺼이 받아들이며 놀이를 확장했어요. 점심과 낮잠은 안정적이었어요.",
+  concise:
+    "민준, 봄꽃 그리기와 모래놀이에 능동적으로 참여. 또래와의 협력 놀이에서 역할 분담을 자발적으로 시도하고, 친구의 아이디어를 수용하는 모습이 관찰됨. 점심·낮잠 안정적.",
+  detailed:
+    "민준이는 봄꽃 그리기 미술활동에서 다양한 색을 조합해 자기만의 작품을 완성하는 집중력을 보였다. 바깥 모래놀이 시간에는 또래에게 \"같이 만들자\"고 먼저 제안하며 협력 놀이를 주도했고, 모래성이 무너졌을 때 \"다시 만들면 돼\"라고 말하며 재시도하는 회복탄력성이 관찰됐다. 친구가 제안한 새 아이디어도 거부감 없이 수용하며 놀이를 확장하는 사회적 유연성이 발달하고 있는 모습이다. 점심과 낮잠 모두 평소처럼 안정적이었다. 종합적으로 또래 관계 안에서의 협력·표현·문제해결 능력이 균형 있게 자라고 있다.",
+};
+
+export const SAMPLE_PARENT_REPLY_BY_TONE: Record<DemoToneParent, string> = {
+  warm: SAMPLE_PARENT_REPLY,
+  careful:
+    "안녕하세요 어머님. 민준이 마음을 헤아려 주시는 마음 잘 받았어요.\n\n어린이집에서 함께 살펴보겠지만, 또래 사이에서 같은 장난감을 두고 양보가 잘 안 되는 순간은 종종 있어요. 발달 과정에서 흔한 일이긴 해도 아이가 속상해할 수 있다는 점에서 충분히 걱정되실 만한 일이에요.\n\n저희도 그런 순간이 보이면 \"잠깐 빌려줄래?\" 같이 말로 표현하도록 함께 연습하고 있어요. 가정에서도 비슷한 일이 있을 때 마음을 먼저 알아주신 뒤 표현 연습을 같이 해주시면 도움이 돼요.\n\n저희도 한 번 더 잘 살펴보고, 필요 시 진행 상황을 다시 전해드릴게요. 또 궁금한 점 있으시면 언제든 말씀해 주세요. 감사합니다.",
+  concise:
+    "안녕하세요 어머님. 또래와 장난감을 두고 양보가 잘 안 되는 일은 이 나이대에 종종 있는 발달 과정의 한 부분이에요. 어린이집에서도 살펴보면서 \"같이 놀까?\", \"빌려줄래?\" 같은 표현을 함께 연습하고 있어요. 가정에서도 비슷한 상황에서 마음을 먼저 알아주신 뒤 말로 표현하는 방법을 같이 해주시면 도움이 돼요. 또 궁금한 점 있으시면 언제든 말씀해 주세요. 감사합니다.",
+};
+
 export const SAMPLE_REPORT = {
   intro:
     "민준이의 4월 한 달은 또래와의 협력적 놀이가 깊어지고, 자기표현의 폭이 넓어진 시간이었어요. 블록·모래·미술 같은 다양한 활동에서 자기 아이디어를 친구에게 제안하고, 친구의 의견도 받아들이는 모습이 자주 관찰됐어요.",
@@ -138,13 +165,3 @@ export const SAMPLE_REPORT = {
     "가정에서도 아이가 만든 이야기를 함께 들어주시고, \"그래서 어떻게 됐어?\" 같이 한 번 더 물어봐 주시면 표현이 더 풍부해져요. 또래 갈등 이야기가 나오면 마음부터 먼저 알아주신 뒤 말로 표현하는 방법을 함께 연습해 주세요.",
 };
 
-export function setSampleFlag(on: boolean): void {
-  if (typeof window === "undefined") return;
-  if (on) localStorage.setItem(SAMPLE_FLAG_KEY, "1");
-  else localStorage.removeItem(SAMPLE_FLAG_KEY);
-}
-
-export function isSampleMode(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(SAMPLE_FLAG_KEY) === "1";
-}
