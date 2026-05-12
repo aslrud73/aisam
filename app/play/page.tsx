@@ -6,6 +6,8 @@ import { fetchErrorMessage, friendlyError } from "../lib/errorMessage";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
 import { PlayIllust } from "../components/illustrations";
+import LicenseModal from "../components/LicenseModal";
+import { isLicensed } from "../lib/license";
 import {
   savePlayJournal,
   listPlayJournals,
@@ -105,6 +107,8 @@ export default function PlayPage() {
   const [historyVersion, setHistoryVersion] = useState(0);
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [licenseModalOpen, setLicenseModalOpen] = useState(false);
+  const pendingAfterLicense = useRef<(() => void) | null>(null);
 
   async function handleFiles(files: FileList | null) {
     if (!files) return;
@@ -147,6 +151,11 @@ export default function PlayPage() {
   async function generate() {
     if (images.length === 0 && !note.trim()) {
       setError("사진을 첨부하거나 메모를 입력해 주세요.");
+      return;
+    }
+    if (!isLicensed()) {
+      pendingAfterLicense.current = () => generate();
+      setLicenseModalOpen(true);
       return;
     }
     setError(null);
@@ -425,6 +434,19 @@ export default function PlayPage() {
         }}
         onDelete={async (id) => {
           await deletePlayJournal(id);
+        }}
+      />
+      <LicenseModal
+        open={licenseModalOpen}
+        onClose={() => {
+          setLicenseModalOpen(false);
+          pendingAfterLicense.current = null;
+        }}
+        onSuccess={() => {
+          setLicenseModalOpen(false);
+          const next = pendingAfterLicense.current;
+          pendingAfterLicense.current = null;
+          if (next) next();
         }}
       />
     </main>

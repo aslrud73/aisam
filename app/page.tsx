@@ -535,6 +535,7 @@ export default function Page() {
   }
 
   async function generate() {
+    if (!requireLicense(() => generate())) return;
     const activeNow = children.filter((c) => !c.archived);
     const anonSelected = selectedIds.has(ANONYMOUS_KID_ID);
     const realTodayChildren = activeNow.filter((c) => selectedIds.has(c.id));

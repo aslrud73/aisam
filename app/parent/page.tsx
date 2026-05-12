@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { fetchErrorMessage, friendlyError } from "../lib/errorMessage";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
 import { ParentIllust } from "../components/illustrations";
+import LicenseModal from "../components/LicenseModal";
+import { isLicensed } from "../lib/license";
 import {
   saveParentReply,
   listParentReplies,
@@ -56,10 +58,17 @@ export default function ParentPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [historyVersion, setHistoryVersion] = useState(0);
+  const [licenseModalOpen, setLicenseModalOpen] = useState(false);
+  const pendingAfterLicense = useRef<(() => void) | null>(null);
 
   async function generate() {
     if (!parentMessage.trim()) {
       setError("학부모님이 보내신 메시지를 먼저 입력해 주세요.");
+      return;
+    }
+    if (!isLicensed()) {
+      pendingAfterLicense.current = () => generate();
+      setLicenseModalOpen(true);
       return;
     }
     setError(null);
@@ -303,6 +312,19 @@ export default function ParentPage() {
         }}
         onDelete={async (id) => {
           await deleteParentReply(id);
+        }}
+      />
+      <LicenseModal
+        open={licenseModalOpen}
+        onClose={() => {
+          setLicenseModalOpen(false);
+          pendingAfterLicense.current = null;
+        }}
+        onSuccess={() => {
+          setLicenseModalOpen(false);
+          const next = pendingAfterLicense.current;
+          pendingAfterLicense.current = null;
+          if (next) next();
         }}
       />
     </main>

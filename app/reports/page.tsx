@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthHeaders, loadSettings } from "../lib/settings";
 import { fetchErrorMessage, friendlyError } from "../lib/errorMessage";
 import { SetupBanner } from "../components/SetupBanner";
 import { Icon, type IconName } from "../components/Icon";
 import { ReportIllust } from "../components/illustrations";
+import LicenseModal from "../components/LicenseModal";
+import { isLicensed } from "../lib/license";
 import {
   listKidsWithEntries,
   getEntriesInRange,
@@ -166,6 +168,8 @@ export default function ReportsPage() {
   const [openEntryId, setOpenEntryId] = useState<number | null>(null);
   const [historyVersion, setHistoryVersion] = useState(0);
   const [showAllReports, setShowAllReports] = useState(false);
+  const [licenseModalOpen, setLicenseModalOpen] = useState(false);
+  const pendingAfterLicense = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     listKidsWithEntries()
@@ -259,6 +263,11 @@ export default function ReportsPage() {
 
   async function generate() {
     if (!selectedKid || !range || reportEntries.length === 0) return;
+    if (!isLicensed()) {
+      pendingAfterLicense.current = () => generate();
+      setLicenseModalOpen(true);
+      return;
+    }
     setGenerating(true);
     setError(null);
     setReport(null);
@@ -797,6 +806,19 @@ export default function ReportsPage() {
           />
         </>
       )}
+      <LicenseModal
+        open={licenseModalOpen}
+        onClose={() => {
+          setLicenseModalOpen(false);
+          pendingAfterLicense.current = null;
+        }}
+        onSuccess={() => {
+          setLicenseModalOpen(false);
+          const next = pendingAfterLicense.current;
+          pendingAfterLicense.current = null;
+          if (next) next();
+        }}
+      />
     </main>
   );
 }
