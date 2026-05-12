@@ -146,7 +146,7 @@ export default function ParentPage() {
 
   return (
     <main data-page="parent" className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
-      <SetupBanner />
+      {!demo.active && <SetupBanner />}
       <div className="flex items-start gap-3">
         <span className="shrink-0">
           <ParentIllust size={40} />

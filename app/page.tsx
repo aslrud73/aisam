@@ -12,9 +12,11 @@ import { useDemo } from "./lib/demoContext";
 import {
   DEMO_CHILDREN,
   SAMPLE_ALRIM_BY_TONE,
+  SAMPLE_ALRIM_NOTES,
   SAMPLE_CLASS_NAME,
   SAMPLE_ENTRIES,
   SAMPLE_GWANCHAL_BY_TONE,
+  SAMPLE_GWANCHAL_NOTES,
   SAMPLE_TODAY_ACTIVITY,
 } from "./lib/samples";
 import {
@@ -228,10 +230,18 @@ export default function Page() {
       if (raw) {
         const parsed: PersistedState = JSON.parse(raw);
         setClassName(parsed.className ?? "햇살반");
-        const loadedChildren = parsed.children ?? [];
+        // 이전 체험판 실험에서 저장된 샘플 데이터(id가 'sample-'로 시작) 제거
+        const loadedChildren = (parsed.children ?? []).filter(
+          (c) => !c.id.startsWith("sample-"),
+        );
         setChildren(loadedChildren);
         setTodayActivity(parsed.todayActivity ?? "");
-        setEntries(parsed.entries ?? {});
+        const cleanedEntries = Object.fromEntries(
+          Object.entries(parsed.entries ?? {}).filter(
+            ([id]) => !id.startsWith("sample-"),
+          ),
+        );
+        setEntries(cleanedEntries);
         setTone(parsed.tone ?? "warm");
         setDocType(parsed.docType ?? "alrim");
         // Default: every registered child is selected for today.
@@ -578,12 +588,17 @@ export default function Page() {
       setError(null);
       setGenerating(true);
       await new Promise((r) => setTimeout(r, 800));
-      const map = docType === "alrim" ? SAMPLE_ALRIM_BY_TONE : SAMPLE_GWANCHAL_BY_TONE;
-      const base = map[tone as keyof typeof map] ?? map.warm;
+      const perKid = docType === "alrim" ? SAMPLE_ALRIM_NOTES : SAMPLE_GWANCHAL_NOTES;
+      const toneMap = docType === "alrim" ? SAMPLE_ALRIM_BY_TONE : SAMPLE_GWANCHAL_BY_TONE;
+      const fallback = toneMap[tone as keyof typeof toneMap] ?? toneMap.warm;
       setNotes((prev) => ({
         ...prev,
         [docType]: Object.fromEntries(
-          children.map((c) => [c.id, base.replace(/민준/g, c.name)]),
+          children.map((c) => {
+            // 아이별 고유 샘플이 있으면 사용, 없으면 톤 기반 fallback (이름 치환)
+            const text = perKid[c.id] ?? fallback.replace(/민준/g, c.name);
+            return [c.id, text];
+          }),
         ),
       }));
       setGenerating(false);
@@ -720,7 +735,7 @@ export default function Page() {
   return (
     <main className="min-h-screen pb-24" data-mode={docType}>
       <div className="max-w-4xl mx-auto px-5 pt-6 space-y-5">
-        <SetupBanner />
+        {!demo.active && <SetupBanner />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <span className="shrink-0">

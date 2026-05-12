@@ -235,7 +235,7 @@ export default function PlayPage() {
 
   return (
     <main data-page="play" className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
-      <SetupBanner />
+      {!demo.active && <SetupBanner />}
       <div className="flex items-start gap-3">
         <span className="shrink-0">
           <PlayIllust size={40} />
