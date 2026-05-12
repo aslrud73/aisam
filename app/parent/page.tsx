@@ -11,8 +11,11 @@ import { isLicensed } from "../lib/license";
 import { useDemo } from "../lib/demoContext";
 import {
   DEMO_PARENT_HISTORY,
+  SAMPLE_PARENT_CHILD_NAME,
+  SAMPLE_PARENT_EXTRA_CONTEXT,
   SAMPLE_PARENT_MESSAGE,
   SAMPLE_PARENT_REPLY_BY_TONE,
+  SAMPLE_PARENT_SITUATION,
   type DemoToneParent,
 } from "../lib/samples";
 import {
@@ -59,10 +62,14 @@ export default function ParentPage() {
   const [parentMessage, setParentMessage] = useState(
     demo.active ? SAMPLE_PARENT_MESSAGE : "",
   );
-  const [childName, setChildName] = useState(demo.active ? "민준" : "");
-  const [extraContext, setExtraContext] = useState("");
+  const [childName, setChildName] = useState(
+    demo.active ? SAMPLE_PARENT_CHILD_NAME : "",
+  );
+  const [extraContext, setExtraContext] = useState(
+    demo.active ? SAMPLE_PARENT_EXTRA_CONTEXT : "",
+  );
   const [situation, setSituation] = useState<Situation>(
-    demo.active ? "conflict" : "general",
+    demo.active ? (SAMPLE_PARENT_SITUATION as Situation) : "general",
   );
   const [tone, setTone] = useState<Tone>("warm");
   const [draft, setDraft] = useState("");
