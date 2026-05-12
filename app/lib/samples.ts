@@ -200,12 +200,25 @@ export const DEMO_PARENT_HISTORY = {
     "안녕하세요 어머님. 따뜻한 말씀 감사해요. 서연이가 어린이집에서 보내는 시간을 즐거워한다니 저희도 무척 기뻐요. 친구들과 어울리는 모습에서 자신감이 점점 자라는 게 느껴져요. 앞으로도 서연이의 작은 변화 하나하나 잘 살펴서 전해드릴게요. 감사합니다.",
 };
 
+function placeholderPhoto(bg: string, fg: string, label: string): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='${bg}'/><text x='50' y='58' font-family='sans-serif' font-size='18' font-weight='bold' text-anchor='middle' fill='${fg}'>${label}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export const DEMO_PLAY_PHOTO_THUMBS = [
+  placeholderPhoto("#FCD8C8", "#7A3B22", "사진 1"),
+  placeholderPhoto("#FFE5B3", "#7A5A22", "사진 2"),
+  placeholderPhoto("#DCD2EE", "#3B2C7A", "사진 3"),
+  placeholderPhoto("#CBE0CA", "#234A23", "사진 4"),
+];
+
 export const DEMO_PLAY_HISTORY = {
   id: 8001,
   createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
   age: "3",
   activityName: "물감 봄꽃 찍기",
-  imageCount: 2,
+  imageCount: 4,
+  photoThumbs: DEMO_PLAY_PHOTO_THUMBS,
   journal: {
     theme: "손가락과 도구로 봄꽃을 찍어 표현한 미술 활동",
     flow:

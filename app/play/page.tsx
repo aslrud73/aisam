@@ -459,6 +459,7 @@ export default function PlayPage() {
                   { label: "확장 놀이", text: h.journal.extension },
                   { label: "가정 연계", text: h.journal.homeConnection },
                 ],
+                images: h.photoThumbs,
               },
             ];
           }
