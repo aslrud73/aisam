@@ -140,6 +140,35 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [betaCreating, setBetaCreating] = useState(false);
   const [betaError, setBetaError] = useState("");
   const [actionError, setActionError] = useState("");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "revoked" | "beta">(
+    "all",
+  );
+
+  const filteredLicenses = licenses.filter((l) => {
+    if (filter === "active" && (l.status !== "active" || l.kind === "beta"))
+      return false;
+    if (filter === "revoked" && l.status !== "revoked") return false;
+    if (filter === "beta" && l.kind !== "beta") return false;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      if (
+        !l.senderName.toLowerCase().includes(q) &&
+        !l.code.toLowerCase().includes(q)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const counts = {
+    all: licenses.length,
+    active: licenses.filter((l) => l.status === "active" && l.kind !== "beta")
+      .length,
+    revoked: licenses.filter((l) => l.status === "revoked").length,
+    beta: licenses.filter((l) => l.kind === "beta").length,
+  };
 
   const authHeader = useCallback((): HeadersInit => {
     const pw =
@@ -400,7 +429,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       <section className="bg-paper rounded-2xl shadow-card p-6 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-ink">
-            발급된 코드 ({licenses.length})
+            발급된 코드 ({filteredLicenses.length}
+            {filteredLicenses.length !== licenses.length && ` / ${licenses.length}`}
+            )
           </h2>
           <button
             type="button"
@@ -412,6 +443,39 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           >
             새로고침
           </button>
+        </div>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="송금자명 또는 코드로 검색"
+          className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-coral-300 text-sm"
+        />
+        <div className="flex flex-wrap gap-1.5">
+          {(
+            [
+              { id: "all", label: "전체" },
+              { id: "active", label: "활성" },
+              { id: "beta", label: "베타" },
+              { id: "revoked", label: "정지" },
+            ] as const
+          ).map((t) => {
+            const active = filter === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setFilter(t.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                  active
+                    ? "bg-coral-500 text-white border-coral-500 shadow-sm"
+                    : "bg-paper text-ink-soft border-warm-200 hover:bg-warm-50"
+                }`}
+              >
+                {t.label} <span className={active ? "text-white/80" : "text-ink-muted"}>({counts[t.id]})</span>
+              </button>
+            );
+          })}
         </div>
         {loadError && (
           <p className="text-sm text-coral-600 leading-relaxed">{loadError}</p>
@@ -425,9 +489,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <p className="text-sm text-ink-muted">불러오는 중...</p>
         ) : licenses.length === 0 ? (
           <p className="text-sm text-ink-muted">아직 발급된 코드가 없어요.</p>
+        ) : filteredLicenses.length === 0 ? (
+          <p className="text-sm text-ink-muted">
+            조건에 맞는 코드가 없어요. 검색어나 필터를 바꿔보세요.
+          </p>
         ) : (
           <ul className="divide-y divide-warm-100">
-            {licenses.map((l) => {
+            {filteredLicenses.map((l) => {
               const isBeta = l.kind === "beta";
               const limitText =
                 l.deviceLimit === null
