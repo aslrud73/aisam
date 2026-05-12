@@ -209,11 +209,16 @@ export default function ParentPage() {
       <Step icon="pencil" step={3} title="참고 정보 (선택)">
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-ink-muted mb-1 block">아이 이름</label>
+            <label className="text-xs text-ink-muted mb-1 block">
+              아이 이름{" "}
+              <span className="text-ink-faint">
+                — 성을 함께 적어주세요 (외자 이름 오인식 방지)
+              </span>
+            </label>
             <input
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
-              placeholder="예: 지우"
+              placeholder="예: 박지우"
               className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm focus:border-mustard-400 focus:ring-2 focus:ring-mustard-100 focus:outline-none"
             />
           </div>
