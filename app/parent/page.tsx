@@ -8,6 +8,11 @@ import { Icon, type IconName } from "../components/Icon";
 import { ParentIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
+import { SampleBanner, TrySampleButton } from "../components/SampleBanner";
+import {
+  SAMPLE_PARENT_MESSAGE,
+  SAMPLE_PARENT_REPLY,
+} from "../lib/samples";
 import {
   saveParentReply,
   listParentReplies,
@@ -60,6 +65,29 @@ export default function ParentPage() {
   const [historyVersion, setHistoryVersion] = useState(0);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const pendingAfterLicense = useRef<(() => void) | null>(null);
+  const [sampleMode, setSampleMode] = useState(false);
+
+  function loadSample() {
+    setParentMessage(SAMPLE_PARENT_MESSAGE);
+    setSituation("conflict");
+    setTone("warm");
+    setChildName("민준");
+    setExtraContext("");
+    setDraft(SAMPLE_PARENT_REPLY);
+    setError(null);
+    setSampleMode(true);
+  }
+
+  function clearSample() {
+    setParentMessage("");
+    setSituation("general");
+    setTone("warm");
+    setChildName("");
+    setExtraContext("");
+    setDraft("");
+    setError(null);
+    setSampleMode(false);
+  }
 
   async function generate() {
     if (!parentMessage.trim()) {
@@ -124,6 +152,7 @@ export default function ParentPage() {
 
   return (
     <main data-page="parent" className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
+      {sampleMode && <SampleBanner onClear={clearSample} />}
       <SetupBanner />
       <div className="flex items-start gap-3">
         <span className="shrink-0">
@@ -137,6 +166,14 @@ export default function ParentPage() {
           </p>
         </div>
       </div>
+      {!sampleMode && !parentMessage && !draft && (
+        <div className="flex justify-end">
+          <TrySampleButton
+            onClick={loadSample}
+            label="체험해보기 (샘플 답변)"
+          />
+        </div>
+      )}
 
       <Step icon="chat" step={1} title="학부모님이 보내신 메시지">
         <textarea

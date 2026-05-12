@@ -8,6 +8,17 @@ import { Icon, type IconName } from "./components/Icon";
 import { AlrimIllust, GwanchalIllust, ClassIllust } from "./components/illustrations";
 import LicenseModal from "./components/LicenseModal";
 import { isLicensed } from "./lib/license";
+import { SampleBanner, TrySampleButton } from "./components/SampleBanner";
+import {
+  SAMPLE_ALRIM_NOTES,
+  SAMPLE_CHILDREN,
+  SAMPLE_CLASS_NAME,
+  SAMPLE_ENTRIES,
+  SAMPLE_GWANCHAL_NOTES,
+  SAMPLE_TODAY_ACTIVITY,
+  isSampleMode,
+  setSampleFlag,
+} from "./lib/samples";
 import {
   saveDailyEntries,
   countKidEntries,
@@ -180,6 +191,7 @@ export default function Page() {
   const rosterFileInputRef = useRef<HTMLInputElement>(null);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const pendingAfterLicense = useRef<(() => void) | null>(null);
+  const [sampleMode, setSampleMode] = useState(false);
   const activityPlaceholder = useMemo(() => pickOne(ACTIVITY_EXAMPLES), []);
   const alrimMemoPlaceholder = useMemo(() => pickOne(ALRIM_MEMO_EXAMPLES), []);
   const gwanchalMemoPlaceholder = useMemo(() => pickOne(GWANCHAL_MEMO_EXAMPLES), []);
@@ -208,6 +220,7 @@ export default function Page() {
         }
       }
     } catch {}
+    setSampleMode(isSampleMode());
     setHydrated(true);
     refreshLastActivity();
   }, []);
@@ -240,6 +253,44 @@ export default function Page() {
     pendingAfterLicense.current = action;
     setLicenseModalOpen(true);
     return false;
+  }
+
+  function loadSample() {
+    setClassName(SAMPLE_CLASS_NAME);
+    setChildren(SAMPLE_CHILDREN.map((c) => ({ id: c.id, name: c.name })));
+    setTodayActivity(SAMPLE_TODAY_ACTIVITY);
+    setEntries(
+      Object.fromEntries(
+        Object.entries(SAMPLE_ENTRIES).map(([id, e]) => [
+          id,
+          {
+            childId: e.childId,
+            meal: e.meal,
+            mood: e.mood,
+            nap: e.nap,
+            memo: e.memo,
+          },
+        ]),
+      ),
+    );
+    setSelectedIds(new Set(SAMPLE_CHILDREN.map((c) => c.id)));
+    setNotes({
+      alrim: { ...SAMPLE_ALRIM_NOTES },
+      gwanchal: { ...SAMPLE_GWANCHAL_NOTES },
+    });
+    setSampleFlag(true);
+    setSampleMode(true);
+  }
+
+  function clearSample() {
+    setClassName("햇살반");
+    setChildren([]);
+    setTodayActivity("");
+    setEntries({});
+    setSelectedIds(new Set());
+    setNotes({ alrim: {}, gwanchal: {} });
+    setSampleFlag(false);
+    setSampleMode(false);
   }
 
   function addChild(name: string) {
@@ -666,6 +717,7 @@ export default function Page() {
   return (
     <main className="min-h-screen pb-24" data-mode={docType}>
       <div className="max-w-4xl mx-auto px-5 pt-6 space-y-5">
+        {sampleMode && <SampleBanner onClear={clearSample} />}
         <SetupBanner />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
@@ -749,6 +801,12 @@ export default function Page() {
               <p className="mb-4">
                 아래 &apos;공통&apos; 카드를 눌러 일반 알림장을 만들 수 있어요.
               </p>
+              <div className="mb-4 flex justify-center">
+                <TrySampleButton
+                  onClick={loadSample}
+                  label="체험해보기 (샘플 명단·기록·알림장)"
+                />
+              </div>
               <div className="flex flex-wrap gap-2 mb-4 justify-center">
                 <button
                   onClick={() => toggleSelected(ANONYMOUS_KID_ID)}

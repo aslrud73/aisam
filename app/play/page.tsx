@@ -8,6 +8,11 @@ import { Icon, type IconName } from "../components/Icon";
 import { PlayIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
+import { SampleBanner, TrySampleButton } from "../components/SampleBanner";
+import {
+  SAMPLE_PLAY_INPUT,
+  SAMPLE_PLAY_JOURNAL,
+} from "../lib/samples";
 import {
   savePlayJournal,
   listPlayJournals,
@@ -109,6 +114,27 @@ export default function PlayPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const pendingAfterLicense = useRef<(() => void) | null>(null);
+  const [sampleMode, setSampleMode] = useState(false);
+
+  function loadSample() {
+    setImages([]);
+    setNote(SAMPLE_PLAY_INPUT.note);
+    setAge(SAMPLE_PLAY_INPUT.age);
+    setActivityName(SAMPLE_PLAY_INPUT.activityName);
+    setJournal(SAMPLE_PLAY_JOURNAL);
+    setError(null);
+    setSampleMode(true);
+  }
+
+  function clearSample() {
+    setImages([]);
+    setNote("");
+    setAge("3");
+    setActivityName("");
+    setJournal(null);
+    setError(null);
+    setSampleMode(false);
+  }
 
   async function handleFiles(files: FileList | null) {
     if (!files) return;
@@ -217,6 +243,7 @@ export default function PlayPage() {
 
   return (
     <main data-page="play" className="max-w-4xl mx-auto px-5 py-8 pb-24 space-y-5">
+      {sampleMode && <SampleBanner onClear={clearSample} />}
       <SetupBanner />
       <div className="flex items-start gap-3">
         <span className="shrink-0">
@@ -230,6 +257,14 @@ export default function PlayPage() {
           </p>
         </div>
       </div>
+      {!sampleMode && !journal && images.length === 0 && !note && (
+        <div className="flex justify-end">
+          <TrySampleButton
+            onClick={loadSample}
+            label="체험해보기 (샘플 놀이기록)"
+          />
+        </div>
+      )}
 
       <Step
         icon="camera"

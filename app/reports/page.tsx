@@ -8,6 +8,12 @@ import { Icon, type IconName } from "../components/Icon";
 import { ReportIllust } from "../components/illustrations";
 import LicenseModal from "../components/LicenseModal";
 import { isLicensed } from "../lib/license";
+import { SampleBanner, TrySampleButton } from "../components/SampleBanner";
+import {
+  SAMPLE_REPORT,
+  SAMPLE_REPORT_KID_NAME,
+  SAMPLE_REPORT_RANGE,
+} from "../lib/samples";
 import {
   listKidsWithEntries,
   getEntriesInRange,
@@ -170,6 +176,7 @@ export default function ReportsPage() {
   const [showAllReports, setShowAllReports] = useState(false);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const pendingAfterLicense = useRef<(() => void) | null>(null);
+  const [sampleMode, setSampleMode] = useState(false);
 
   useEffect(() => {
     listKidsWithEntries()
@@ -363,15 +370,49 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {sampleMode ? (
+        <>
+          <SampleBanner onClear={() => setSampleMode(false)} />
+          <section className="bg-paper rounded-2xl p-6 shadow-card">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
+                <span className="text-navy-500">
+                  <Icon name="check" size={18} strokeWidth={2} />
+                </span>
+                {SAMPLE_REPORT_KID_NAME} · {SAMPLE_REPORT_RANGE} 성장 리포트
+              </h2>
+            </div>
+            <div className="space-y-4">
+              {SECTIONS.map(({ key, label }) => (
+                <div key={key}>
+                  <h3 className="text-xs font-semibold text-navy-700 mb-1.5 tracking-wide">
+                    {label}
+                  </h3>
+                  <p className="text-sm leading-relaxed bg-[var(--page-accent-50)] border-l-2 border-navy-300 rounded-2xl p-3.5 text-ink-soft whitespace-pre-wrap">
+                    {SAMPLE_REPORT[key]}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
+      ) : loading ? (
         <div className="text-center text-ink-faint py-16">불러오는 중...</div>
       ) : kids.length === 0 ? (
-        <div className="bg-[var(--page-accent-50)] rounded-2xl p-10 text-center text-sm text-ink-soft leading-relaxed shadow-card">
-          <p className="font-display text-base text-ink mb-2">아직 누적된 기록이 없어요</p>
-          <p>
-            "오늘 기록"에서 알림장이나 관찰일지를 한 번 이상 생성하면<br />
-            성장 리포트를 만들 수 있어요.
-          </p>
+        <div className="bg-[var(--page-accent-50)] rounded-2xl p-10 text-center text-sm text-ink-soft leading-relaxed shadow-card space-y-4">
+          <div>
+            <p className="font-display text-base text-ink mb-2">아직 누적된 기록이 없어요</p>
+            <p>
+              "오늘 기록"에서 알림장이나 관찰일지를 한 번 이상 생성하면<br />
+              성장 리포트를 만들 수 있어요.
+            </p>
+          </div>
+          <div>
+            <TrySampleButton
+              onClick={() => setSampleMode(true)}
+              label="체험해보기 (샘플 리포트)"
+            />
+          </div>
         </div>
       ) : (
         <>
