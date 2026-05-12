@@ -10,6 +10,8 @@ interface License {
   createdAt: string;
   devices: string[];
   status: "active" | "revoked";
+  kind?: "personal" | "beta";
+  deviceLimit?: number | null;
 }
 
 export default function AdminPage() {
@@ -133,6 +135,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [createError, setCreateError] = useState("");
   const [justCreated, setJustCreated] = useState<License | null>(null);
   const [copiedCode, setCopiedCode] = useState("");
+  const [betaCode, setBetaCode] = useState("");
+  const [betaName, setBetaName] = useState("");
+  const [betaCreating, setBetaCreating] = useState(false);
+  const [betaError, setBetaError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const authHeader = useCallback((): HeadersInit => {
     const pw =
@@ -201,6 +208,66 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       setTimeout(() => setCopiedCode(""), 1500);
     } catch {
       /* ignore */
+    }
+  };
+
+  const handleCreateBeta = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = betaCode.trim();
+    const name = betaName.trim();
+    if (!code || !name) return;
+    setBetaCreating(true);
+    setBetaError("");
+    try {
+      const res = await fetch("/api/admin/codes", {
+        method: "POST",
+        headers: authHeader(),
+        body: JSON.stringify({
+          senderName: name,
+          kind: "beta",
+          customCode: code,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBetaError(data?.error ?? "베타 코드 생성 실패");
+      } else {
+        setJustCreated(data.license);
+        setBetaCode("");
+        setBetaName("");
+        setLicenses((prev) => [data.license, ...prev]);
+      }
+    } catch {
+      setBetaError("연결에 문제가 있어요.");
+    } finally {
+      setBetaCreating(false);
+    }
+  };
+
+  const patchLicense = async (
+    code: string,
+    action: "revoke" | "reactivate" | "resetDevices",
+  ) => {
+    setActionError("");
+    try {
+      const res = await fetch(
+        `/api/admin/codes/${encodeURIComponent(code)}`,
+        {
+          method: "PATCH",
+          headers: authHeader(),
+          body: JSON.stringify({ action }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        setActionError(data?.error ?? "작업 실패");
+        return;
+      }
+      setLicenses((prev) =>
+        prev.map((l) => (l.code === data.license.code ? data.license : l)),
+      );
+    } catch {
+      setActionError("연결에 문제가 있어요.");
     }
   };
 
@@ -273,6 +340,43 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       </section>
 
       <section className="bg-paper rounded-2xl shadow-card p-6 space-y-3">
+        <h2 className="text-base font-semibold text-ink">베타 코드 발급</h2>
+        <p className="text-xs text-ink-muted">
+          베타 코드는 <strong>기기 수 제한이 없어요.</strong> 베타 기간 동안
+          누구나 사용 가능. 정식 출시 시 정지 버튼으로 일괄 차단할 수 있어요.
+        </p>
+        <form onSubmit={handleCreateBeta} className="space-y-2">
+          <input
+            type="text"
+            value={betaCode}
+            onChange={(e) => setBetaCode(e.target.value.toUpperCase())}
+            placeholder="코드 이름 (예: BETA2026)"
+            className="w-full px-4 py-3 rounded-xl border border-warm-200 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-coral-300 text-sm font-mono tracking-wide uppercase"
+            spellCheck={false}
+          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={betaName}
+              onChange={(e) => setBetaName(e.target.value)}
+              placeholder="메모 (예: 2026년 5월 베타 사용자용)"
+              className="flex-1 px-4 py-3 rounded-xl border border-warm-200 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-coral-300 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={betaCreating || !betaCode.trim() || !betaName.trim()}
+              className="px-5 py-3 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-semibold disabled:opacity-50 transition text-sm whitespace-nowrap"
+            >
+              {betaCreating ? "발급 중..." : "베타 코드"}
+            </button>
+          </div>
+        </form>
+        {betaError && (
+          <p className="text-sm text-coral-600 leading-relaxed">{betaError}</p>
+        )}
+      </section>
+
+      <section className="bg-paper rounded-2xl shadow-card p-6 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-ink">
             발급된 코드 ({licenses.length})
@@ -291,46 +395,114 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {loadError && (
           <p className="text-sm text-coral-600 leading-relaxed">{loadError}</p>
         )}
+        {actionError && (
+          <p className="text-sm text-coral-600 leading-relaxed">
+            {actionError}
+          </p>
+        )}
         {loading ? (
           <p className="text-sm text-ink-muted">불러오는 중...</p>
         ) : licenses.length === 0 ? (
           <p className="text-sm text-ink-muted">아직 발급된 코드가 없어요.</p>
         ) : (
           <ul className="divide-y divide-warm-100">
-            {licenses.map((l) => (
-              <li
-                key={l.code}
-                className="py-3 flex items-center justify-between gap-3 flex-wrap"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-ink">
-                    {l.senderName}
-                  </p>
-                  <p className="text-xs text-ink-muted mt-0.5">
-                    {new Date(l.createdAt).toLocaleDateString("ko-KR", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                    })}
-                    {" · 기기 "}
-                    {l.devices.length}/2
-                    {l.status === "revoked" && " · 정지됨"}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <code className="text-sm font-bold text-coral-700 bg-coral-50 px-2.5 py-1 rounded-lg select-all">
-                    {l.code}
-                  </code>
-                  <button
-                    type="button"
-                    onClick={() => copy(l.code)}
-                    className="text-xs font-semibold bg-coral-100 hover:bg-coral-200 text-coral-700 rounded-lg px-2.5 py-1"
-                  >
-                    {copiedCode === l.code ? "복사됨!" : "복사"}
-                  </button>
-                </div>
-              </li>
-            ))}
+            {licenses.map((l) => {
+              const isBeta = l.kind === "beta";
+              const limitText =
+                l.deviceLimit === null
+                  ? "무제한"
+                  : `${l.devices.length}/${l.deviceLimit ?? 2}`;
+              const isRevoked = l.status === "revoked";
+              return (
+                <li
+                  key={l.code}
+                  className="py-3 space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                        {l.senderName}
+                        {isBeta && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-mustard-100 text-mustard-700">
+                            BETA
+                          </span>
+                        )}
+                        {isRevoked && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-warm-100 text-ink-muted">
+                            정지됨
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-ink-muted mt-0.5">
+                        {new Date(l.createdAt).toLocaleDateString("ko-KR", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })}
+                        {" · 기기 "}
+                        {limitText}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <code className="text-sm font-bold text-coral-700 bg-coral-50 px-2.5 py-1 rounded-lg select-all">
+                        {l.code}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => copy(l.code)}
+                        className="text-xs font-semibold bg-coral-100 hover:bg-coral-200 text-coral-700 rounded-lg px-2.5 py-1"
+                      >
+                        {copiedCode === l.code ? "복사됨!" : "복사"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {isRevoked ? (
+                      <button
+                        type="button"
+                        onClick={() => patchLicense(l.code, "reactivate")}
+                        className="text-xs font-semibold bg-sage-100 hover:bg-sage-200 text-sage-700 rounded-lg px-2.5 py-1"
+                      >
+                        다시 활성화
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `${l.code} 코드를 정지할까요?\n이 코드를 쓰는 모든 기기가 다음 접속 시 차단돼요.`,
+                            )
+                          ) {
+                            patchLicense(l.code, "revoke");
+                          }
+                        }}
+                        className="text-xs font-semibold bg-warm-100 hover:bg-warm-200 text-ink-soft rounded-lg px-2.5 py-1"
+                      >
+                        정지
+                      </button>
+                    )}
+                    {l.devices.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `${l.code} 의 등록된 기기를 모두 해제할까요?`,
+                            )
+                          ) {
+                            patchLicense(l.code, "resetDevices");
+                          }
+                        }}
+                        className="text-xs font-semibold bg-warm-100 hover:bg-warm-200 text-ink-soft rounded-lg px-2.5 py-1"
+                      >
+                        기기 초기화
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

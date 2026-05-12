@@ -6,6 +6,8 @@ import { fetchErrorMessage, friendlyError } from "./lib/errorMessage";
 import { SetupBanner } from "./components/SetupBanner";
 import { Icon, type IconName } from "./components/Icon";
 import { AlrimIllust, GwanchalIllust, ClassIllust } from "./components/illustrations";
+import LicenseModal from "./components/LicenseModal";
+import { isLicensed } from "./lib/license";
 import {
   saveDailyEntries,
   countKidEntries,
@@ -176,6 +178,8 @@ export default function Page() {
     new Map(),
   );
   const rosterFileInputRef = useRef<HTMLInputElement>(null);
+  const [licenseModalOpen, setLicenseModalOpen] = useState(false);
+  const pendingAfterLicense = useRef<(() => void) | null>(null);
   const activityPlaceholder = useMemo(() => pickOne(ACTIVITY_EXAMPLES), []);
   const alrimMemoPlaceholder = useMemo(() => pickOne(ALRIM_MEMO_EXAMPLES), []);
   const gwanchalMemoPlaceholder = useMemo(() => pickOne(GWANCHAL_MEMO_EXAMPLES), []);
@@ -231,9 +235,17 @@ export default function Page() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [hydrated, className, children, todayActivity, entries, tone, docType, selectedIds]);
 
+  function requireLicense(action: () => void): boolean {
+    if (isLicensed()) return true;
+    pendingAfterLicense.current = action;
+    setLicenseModalOpen(true);
+    return false;
+  }
+
   function addChild(name: string) {
     const trimmed = name.trim();
     if (!trimmed) return;
+    if (!requireLicense(() => addChild(trimmed))) return;
 
     let finalName = trimmed;
     if (hasName(children, trimmed)) {
@@ -266,6 +278,7 @@ export default function Page() {
       .map((n) => n.trim())
       .filter(Boolean);
     if (names.length === 0) return;
+    if (!requireLicense(() => addBulk())) return;
 
     // Auto-suffix duplicates against the existing roster *and* against
     // earlier entries in this same bulk batch.
@@ -464,6 +477,7 @@ export default function Page() {
         alert("파일에서 이름을 찾을 수 없어요.");
         return;
       }
+      if (!requireLicense(() => importRosterFile(file))) return;
       const renamed: { from: string; to: string }[] = [];
       const newChildren: Child[] = [];
       const running: { name: string }[] = [...children];
@@ -1172,6 +1186,19 @@ export default function Page() {
           </section>
         )}
       </div>
+      <LicenseModal
+        open={licenseModalOpen}
+        onClose={() => {
+          setLicenseModalOpen(false);
+          pendingAfterLicense.current = null;
+        }}
+        onSuccess={() => {
+          setLicenseModalOpen(false);
+          const next = pendingAfterLicense.current;
+          pendingAfterLicense.current = null;
+          if (next) next();
+        }}
+      />
     </main>
   );
 }

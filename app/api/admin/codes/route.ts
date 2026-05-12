@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { checkAdmin } from "../../../lib/adminAuth";
-import { createLicense, listLicenses } from "../../../lib/licenseStore";
+import {
+  createBetaLicense,
+  createLicense,
+  listLicenses,
+} from "../../../lib/licenseStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,7 +47,7 @@ export async function POST(req: Request) {
   if (!checkAdmin(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  let body: { senderName?: string } = {};
+  let body: { senderName?: string; kind?: string; customCode?: string } = {};
   try {
     body = await req.json();
   } catch {
@@ -53,12 +57,25 @@ export async function POST(req: Request) {
     typeof body.senderName === "string" ? body.senderName.trim() : "";
   if (!senderName) {
     return NextResponse.json(
-      { error: "송금자명을 입력해주세요." },
+      { error: "송금자명(또는 메모)을 입력해주세요." },
       { status: 400 },
     );
   }
   try {
-    const license = await createLicense(senderName);
+    let license;
+    if (body.kind === "beta") {
+      const customCode =
+        typeof body.customCode === "string" ? body.customCode.trim() : "";
+      if (!customCode) {
+        return NextResponse.json(
+          { error: "베타 코드 이름을 입력해주세요. (예: BETA2026)" },
+          { status: 400 },
+        );
+      }
+      license = await createBetaLicense(customCode, senderName);
+    } else {
+      license = await createLicense(senderName);
+    }
     return NextResponse.json({ license });
   } catch (e) {
     if (isStorageError(e)) {

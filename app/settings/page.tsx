@@ -12,6 +12,7 @@ import {
 } from "../lib/settings";
 import { PROVIDER_LABELS } from "../lib/providers/types";
 import { DataSection } from "../components/DataSection";
+import { LicenseSection } from "../components/LicenseSection";
 import { Icon } from "../components/Icon";
 
 const PROVIDER_DOCS: Record<
@@ -336,6 +337,8 @@ export default function SettingsPage() {
           </span>
         )}
       </section>
+
+      <LicenseSection />
 
       <DataSection />
 
