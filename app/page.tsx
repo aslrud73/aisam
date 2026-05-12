@@ -10,13 +10,13 @@ import LicenseModal from "./components/LicenseModal";
 import { isLicensed } from "./lib/license";
 import { useDemo } from "./lib/demoContext";
 import {
+  DEMO_ALRIM_BY_KID_TONE,
   DEMO_CHILDREN,
+  DEMO_GWANCHAL_BY_KID_TONE,
   SAMPLE_ALRIM_BY_TONE,
-  SAMPLE_ALRIM_NOTES,
   SAMPLE_CLASS_NAME,
   SAMPLE_ENTRIES,
   SAMPLE_GWANCHAL_BY_TONE,
-  SAMPLE_GWANCHAL_NOTES,
   SAMPLE_TODAY_ACTIVITY,
 } from "./lib/samples";
 import {
@@ -588,15 +588,20 @@ export default function Page() {
       setError(null);
       setGenerating(true);
       await new Promise((r) => setTimeout(r, 800));
-      const perKid = docType === "alrim" ? SAMPLE_ALRIM_NOTES : SAMPLE_GWANCHAL_NOTES;
-      const toneMap = docType === "alrim" ? SAMPLE_ALRIM_BY_TONE : SAMPLE_GWANCHAL_BY_TONE;
-      const fallback = toneMap[tone as keyof typeof toneMap] ?? toneMap.warm;
+      const kidMap =
+        docType === "alrim" ? DEMO_ALRIM_BY_KID_TONE : DEMO_GWANCHAL_BY_KID_TONE;
+      const fallbackMap =
+        docType === "alrim" ? SAMPLE_ALRIM_BY_TONE : SAMPLE_GWANCHAL_BY_TONE;
+      const fallback =
+        fallbackMap[tone as keyof typeof fallbackMap] ?? fallbackMap.warm;
+      const toneKey = tone as "warm" | "concise" | "detailed";
       setNotes((prev) => ({
         ...prev,
         [docType]: Object.fromEntries(
           children.map((c) => {
-            // 아이별 고유 샘플이 있으면 사용, 없으면 톤 기반 fallback (이름 치환)
-            const text = perKid[c.id] ?? fallback.replace(/민준/g, c.name);
+            const kidTones = kidMap[c.id];
+            const text =
+              kidTones?.[toneKey] ?? fallback.replace(/민준/g, c.name);
             return [c.id, text];
           }),
         ),
