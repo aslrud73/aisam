@@ -274,10 +274,7 @@ export default function Page() {
       ),
     );
     setSelectedIds(new Set(SAMPLE_CHILDREN.map((c) => c.id)));
-    setNotes({
-      alrim: { ...SAMPLE_ALRIM_NOTES },
-      gwanchal: { ...SAMPLE_GWANCHAL_NOTES },
-    });
+    setNotes({ alrim: {}, gwanchal: {} });
     setSampleFlag(true);
     setSampleMode(true);
   }
@@ -586,6 +583,20 @@ export default function Page() {
   }
 
   async function generate() {
+    if (sampleMode) {
+      setError(null);
+      setGenerating(true);
+      await new Promise((r) => setTimeout(r, 800));
+      setNotes((prev) => ({
+        ...prev,
+        [docType]:
+          docType === "alrim"
+            ? { ...SAMPLE_ALRIM_NOTES }
+            : { ...SAMPLE_GWANCHAL_NOTES },
+      }));
+      setGenerating(false);
+      return;
+    }
     if (!requireLicense(() => generate())) return;
     const activeNow = children.filter((c) => !c.archived);
     const anonSelected = selectedIds.has(ANONYMOUS_KID_ID);
@@ -774,7 +785,7 @@ export default function Page() {
           })}
         </div>
 
-        <section className="bg-paper rounded-2xl p-6 shadow-card">
+        <section className={`bg-paper rounded-2xl p-6 shadow-card ${sampleMode ? "opacity-60 pointer-events-none" : ""}`}>
           <StepHeader
             step={1}
             icon="users"
@@ -1067,7 +1078,7 @@ export default function Page() {
           )}
         </section>
 
-        <section className="bg-paper rounded-2xl p-6 shadow-card">
+        <section className={`bg-paper rounded-2xl p-6 shadow-card ${sampleMode ? "opacity-60 pointer-events-none" : ""}`}>
           <StepHeader step={2} icon="sun" title="오늘의 활동" />
           <textarea
             value={todayActivity}
@@ -1082,7 +1093,7 @@ export default function Page() {
         </section>
 
         {todayChildren.length > 0 && (
-          <section className="bg-paper rounded-2xl p-6 shadow-card">
+          <section className={`bg-paper rounded-2xl p-6 shadow-card ${sampleMode ? "opacity-60 pointer-events-none" : ""}`}>
             <StepHeader
               step={3}
               icon="pencil"

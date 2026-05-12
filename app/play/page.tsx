@@ -121,7 +121,7 @@ export default function PlayPage() {
     setNote(SAMPLE_PLAY_INPUT.note);
     setAge(SAMPLE_PLAY_INPUT.age);
     setActivityName(SAMPLE_PLAY_INPUT.activityName);
-    setJournal(SAMPLE_PLAY_JOURNAL);
+    setJournal(null);
     setError(null);
     setSampleMode(true);
   }
@@ -177,6 +177,15 @@ export default function PlayPage() {
   async function generate() {
     if (images.length === 0 && !note.trim()) {
       setError("사진을 첨부하거나 메모를 입력해 주세요.");
+      return;
+    }
+    if (sampleMode) {
+      setError(null);
+      setGenerating(true);
+      setJournal(null);
+      await new Promise((r) => setTimeout(r, 800));
+      setJournal(SAMPLE_PLAY_JOURNAL);
+      setGenerating(false);
       return;
     }
     if (!isLicensed()) {
@@ -266,6 +275,7 @@ export default function PlayPage() {
         </div>
       )}
 
+      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
       <Step
         icon="camera"
         step={1}
@@ -328,7 +338,9 @@ export default function PlayPage() {
           </div>
         )}
       </Step>
+      </div>
 
+      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
       <Step icon="pencil" step={2} title="놀이 메모 (선택)">
         <input
           value={activityName}
@@ -344,7 +356,9 @@ export default function PlayPage() {
           className="w-full px-3.5 py-2.5 rounded-xl border border-warm-200 bg-paper text-sm leading-relaxed focus:border-lavender-400 focus:ring-2 focus:ring-lavender-100 focus:outline-none resize-none"
         />
       </Step>
+      </div>
 
+      <div className={sampleMode ? "opacity-60 pointer-events-none" : ""}>
       <Step icon="users" step={3} title="연령">
         <div className="flex flex-wrap gap-2">
           {AGE_OPTIONS.map((a) => {
@@ -365,6 +379,7 @@ export default function PlayPage() {
           })}
         </div>
       </Step>
+      </div>
 
       <div className="bg-paper rounded-2xl p-6 shadow-card">
         <button
